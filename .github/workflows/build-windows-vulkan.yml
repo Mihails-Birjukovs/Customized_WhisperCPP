@@ -58,6 +58,12 @@ jobs:
       - name: Stage and verify distribution
         run: |
           ./scripts/windows/vulkan/package-vulkan.ps1 -BuildRoot build-windows-vulkan -OutputDir dist/Whisper_Vulkan_Windows_x64
+      - name: Package executable startup smoke test
+        run: |
+          $exe = 'dist/Whisper_Vulkan_Windows_x64/whisper-cli.exe'
+          & $exe --version
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged whisper-cli.exe failed to start' }
+          Write-Host 'CLI startup passed. GPU execution still requires AMD/Intel hardware.'
       - name: Upload Vulkan Windows package
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
