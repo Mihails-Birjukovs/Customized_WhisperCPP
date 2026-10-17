@@ -1,0 +1,73 @@
+name: Windows Vulkan batch package
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/windows-vulkan-batch]
+    paths:
+      - '.github/workflows/build-windows-vulkan.yml'
+      - 'scripts/windows/vulkan/**'
+      - 'docs/WINDOWS_VULKAN_BUILD.md'
+      - 'CMakeLists.txt'
+      - 'ggml/**'
+      - 'src/**'
+      - 'examples/cli/**'
+  pull_request:
+    paths:
+      - '.github/workflows/build-windows-vulkan.yml'
+      - 'scripts/windows/vulkan/**'
+      - 'docs/WINDOWS_VULKAN_BUILD.md'
+      - 'CMakeLists.txt'
+      - 'ggml/**'
+      - 'src/**'
+      - 'examples/cli/**'
+permissions:
+  contents: read
+jobs:
+  windows-vulkan:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@d17de7e2f5e50efb5d2123efed18497d3c58c533 # v1
+        with:
+          vulkan_version: '1.4.321.1'
+          install_runtime: false
+          cache: true
+      - name: Check Vulkan toolchain
+        run: |
+          Write-Host "VULKAN_SDK=$env:VULKAN_SDK"
+          if (-not $env:VULKAN_SDK) { throw 'VULKAN_SDK missing' }
+          $glslc = Join-Path $env:VULKAN_SDK 'Bin/glslc.exe'
+          if (-not (Test-Path $glslc)) { throw "Missing glslc: $glslc" }
+          & $glslc --version
+          cmake --version
+      - name: Configure Windows Vulkan Release
+        run: |
+          $flags = @('-DGGML_VULKAN=ON','-DGGML_CUDA=OFF','-DGGML_HIP=OFF','-DGGML_SYCL=OFF','-DBUILD_SHARED_LIBS=ON','-DGGML_BACKEND_DL=OFF','-DGGML_NATIVE=OFF','-DGGML_AVX512=OFF')
+          & cmake -S . -B build-windows-vulkan -G "Visual Studio 17 2022" -A x64 @flags
+          if ($LASTEXITCODE -ne 0) { throw 'CMake configure failed' }
+      - name: Compile whisper-cli and Vulkan backend
+        run: |
+          & cmake --build build-windows-vulkan --config Release --target whisper-cli --parallel 4
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+      - name: Stage and verify distribution
+        run: |
+          ./scripts/windows/vulkan/package-vulkan.ps1 -BuildRoot build-windows-vulkan -OutputDir dist/Whisper_Vulkan_Windows_x64
+      - name: Package executable startup smoke test
+        run: |
+          $exe = 'dist/Whisper_Vulkan_Windows_x64/whisper-cli.exe'
+          & $exe --version
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged whisper-cli.exe failed to start' }
+          Write-Host 'CLI startup passed. GPU execution still requires AMD/Intel hardware.'
+      - name: Upload Vulkan Windows package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: whisper-vulkan-windows-x64
+          path: dist/Whisper_Vulkan_Windows_x64/
+          if-no-files-found: error
+          retention-days: 30
