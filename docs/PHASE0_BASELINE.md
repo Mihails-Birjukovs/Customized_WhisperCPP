@@ -1,6 +1,6 @@
 # Phase 0 — reproducible baseline inventory (2026-10-17)
 
-Status: **asset inventory complete for named scripts/notebook; runtime execution and transcript equivalence NOT VERIFIED.** This file documents existing evidence, not a claim that recognition software has been run.
+Status: **legacy scripts and 40 example baseline-output triplets inventoried; runtime execution and transcript equivalence NOT VERIFIED.** This file documents existing evidence, not a claim that recognition software has been run.
 
 ## Provenance
 
@@ -26,11 +26,21 @@ The original BAT scripts scan the working directory for `*.flac *.mp3 *.wav *.og
 ## Next reproducibility gate
 
 1. On a controlled Windows machine, inventory installed CUDA/CPU/Vulkan binaries and dependencies, hashes of all model files, driver/runtime versions, `whisper-cli.exe --help` output and `ffprobe` metadata for test audio. Never commit private audio or large model weights to this repository.
-2. Capture one clean, one technical/multilingual, one long-form, and at least one known-loop/instability clip with human-verified reference or explicitly mark reference as missing. Keep held-out controls as well as failure examples.
-3. Invoke *original* CUDA and CPU scripts in their native folder layout and retain raw TXT/SRT/configuration/log/exit-code output. Preserve a mapping from the original audio timeline to decoded windows.
+2. Select candidate controls, technical/multilingual examples, long-form samples and known repetition windows from `benchmarks/phase0_corpus_manifest.json`. Obtain **human-verified** reference text where possible, or explicitly mark it missing; preserve held-out controls.
+3. Preserve the newly found **historical CUDA** TXT/SRT/config triplets as baseline hypotheses. Invoke *original* CUDA and CPU scripts in their native folder layout for fresh reproducibility trials; retain TXT/SRT/configuration/log/exit codes and a map from audio-global time to decoder windows.
 4. Run the baseline with the intended new orchestrator **before enabling auto-recovery**, verify transcript equivalence (or document any intentional differences), record RTF, WER/CER/entity metrics when reference is available, and verify that unsuccessful runs are reported as failures.
 5. Define and freeze exact Level 0 / Level 1 / Level 2 transcript-cleaning conventions before implementing exporters. The knowledge handoff names those levels but does not contain their full operative definitions.
 
 ## Project scope
 
 Phase 0 is baseline preservation and documentation. It performs no speech decoding, retries, native source modification, repository cleanup/deletion, fine-tuning, or calibration of proposed fallbacks.
+
+## Post-PR example corpus addendum (reviewed 2026-10-25)
+
+The independently inventoried `Example Input-Output/` folder was added shortly **after** PR #1 was opened. The repository now has source-locator metadata for **35 team-meeting** and **5 lecture** recordings with saved CUDA TXT/SRT/config triplets, plus one potential duplicate lecture WAV.
+
+Eight meetings display repeated consecutive SRT subtitles, including very long runs that advance timestamps while their text stays fixed. These are compelling **output-level regression candidates**, not an acoustically confirmed error-label set. Candidate negative controls are also not human-verified.
+
+The 2026-03-10 TXT encoding exception, tentative Lecture 3 duplicate, three uninspected archives and absent human-corrected references are documented as open gates. Historical binaries/models have not been executed or independently hashed in this review.
+
+**This amendment closes a Drive inventory gap, not Phase 0's separate Windows runtime-reproduction gate.** Archived BAT/notebook bytes, recorded hashes and existing upstream source remain unchanged.
