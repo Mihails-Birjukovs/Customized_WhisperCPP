@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "project": "Audio Transcription Framework",
+  "status": "documented-not-reproduced",
+  "upstream_commit": "0c7be696371069e0baa2515ed7aa08d5a5473aa6",
+  "model": "models/ggml-large-v3.bin",
+  "vad_model": "models/ggml-silero-v6.2.0.bin",
+  "language": "auto",
+  "temperature": 0,
+  "temperature_increment": 0.1,
+  "max_context": 128,
+  "beam_size": 8,
+  "best_of": 3,
+  "no_speech_threshold": 0.995,
+  "disable_fallback": false,
+  "vad": {
+    "enabled": true,
+    "threshold": 0.8,
+    "min_silence_ms": 400,
+    "min_speech_ms": 350,
+    "padding_ms_by_backend": {
+      "cuda": 50,
+      "cpu": 30
+    }
+  },
+  "backends": {
+    "cuda": {
+      "threads": 12,
+      "script": "legacy/windows/Whisper_GPU_run_script_batch.bat"
+    },
+    "cpu": {
+      "threads": 35,
+      "script": "legacy/windows/Whisper_CPU_run_script_batch.bat"
+    }
+  },
+  "outputs": [
+    "txt",
+    "srt",
+    "config.txt"
+  ],
+  "runtime_binary_source": "Drive snapshots dated 2025-10-15; release/commit unverified"
+}
