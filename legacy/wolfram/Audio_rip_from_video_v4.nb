@@ -1,0 +1,194 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      7220,        184]
+NotebookOptionsPosition[      6522,        164]
+NotebookOutlinePosition[      7025,        182]
+CellTagsIndexPosition[      6982,        179]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{
+   "workFolder", "=", 
+    "\"\<D:\\\\Science\\\\Tools\\\\Audio Track Extractor\\\\\>\""}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"outputFolder", "=", 
+    RowBox[{"NotebookDirectory", "[", "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\n", 
+ RowBox[{
+  RowBox[{"folderNames", "=", 
+   RowBox[{
+    RowBox[{"Select", "[", "DirectoryQ", "]"}], "@", 
+    RowBox[{"FileNames", "[", 
+     RowBox[{"\"\<*\>\"", ",", "workFolder"}], "]"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{
+      RowBox[{"Last", "@", 
+       RowBox[{"StringSplit", "[", 
+        RowBox[{"#", ",", "$PathnameSeparator"}], "]"}]}], "&"}], "@", "#"}], 
+    "&"}], "/@", "folderNames"}], "//", "TableForm"}], "\[IndentingNewLine]", 
+
+ RowBox[{
+  RowBox[{"folderNames", "//", "Length"}], "\n"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"videoFolderID", "=", "1"}], ";"}], 
+  "\n"}], "\[IndentingNewLine]", 
+ RowBox[{"selectedFolder", "=", 
+  RowBox[{"folderNames", "[", 
+   RowBox[{"[", "videoFolderID", "]"}], "]"}]}], "\n", 
+ RowBox[{
+  RowBox[{"videoFiles", "=", 
+   RowBox[{"FileNames", "[", 
+    RowBox[{"\"\<*.mp4\>\"", ",", "selectedFolder"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{
+      RowBox[{"Last", "@", 
+       RowBox[{"StringSplit", "[", 
+        RowBox[{"#", ",", "$PathnameSeparator"}], "]"}]}], "&"}], "@", "#"}], 
+    "&"}], "/@", "videoFiles"}], "//", "TableForm"}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.9843849374162664`*^9, 3.9843849456740627`*^9}, {
+   3.9843850662022905`*^9, 3.9843851647048607`*^9}, {3.984385661969192*^9, 
+   3.9843856705370007`*^9}, {3.984584673999755*^9, 3.9845846752974887`*^9}, {
+   3.9845847152795315`*^9, 3.9845847517824*^9}, 3.9848051303196464`*^9, {
+   3.986999333993851*^9, 3.9869993567592907`*^9}, {3.9962257451673765`*^9, 
+   3.9962257870496416`*^9}},
+ CellLabel->
+  "In[162]:=",ExpressionUUID->"1056736f-4805-4d9d-a34e-75e4d3116bd4"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"wavExportFormat", "=", "\"\<.wav\>\""}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"mp3ExportFormat", "=", "\"\<.mp3\>\""}], ";"}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.9843849374162664`*^9, 3.984384991641176*^9}, {
+  3.9997075344428053`*^9, 
+  3.9997075345206165`*^9}},ExpressionUUID->"0fdca2f2-08e3-4e0b-b2d8-\
+3b1603582809"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", 
+   RowBox[{"Parallelize", "@"}], "*)"}], 
+  RowBox[{
+   RowBox[{"Scan", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"Function", "[", "\[IndentingNewLine]", 
+      RowBox[{"videoFile", ",", "\[IndentingNewLine]", 
+       RowBox[{"Module", "[", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+          "videoObject", ",", "audioTrack", ",", "sanitizedBaseName", ",", 
+           "wavOutputFile", ",", "mp3OutputFile"}], "}"}], ",", 
+         "\[IndentingNewLine]", "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"Print", "[", 
+           RowBox[{"\"\<Processing: \>\"", ",", "videoFile"}], "]"}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"videoObject", "=", 
+           RowBox[{"Import", "@", "videoFile"}]}], ";", "\[IndentingNewLine]", 
+          RowBox[{"audioTrack", "=", 
+           RowBox[{"Audio", "@", "videoObject"}]}], ";", 
+          "\[IndentingNewLine]", "\[IndentingNewLine]", 
+          RowBox[{"sanitizedBaseName", "=", 
+           RowBox[{"StringReplace", "[", 
+            RowBox[{
+             RowBox[{"RemoveDiacritics", "[", 
+              RowBox[{"FileBaseName", "@", "videoFile"}], "]"}], ",", 
+             RowBox[{
+              RowBox[{"WhitespaceCharacter", ".."}], "\[Rule]", 
+              "\"\<_\>\""}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+          RowBox[{"wavOutputFile", "=", 
+           RowBox[{"FileNameJoin", "[", 
+            RowBox[{"{", 
+             RowBox[{"outputFolder", ",", 
+              RowBox[{"sanitizedBaseName", "<>", "wavExportFormat"}]}], "}"}],
+             "]"}]}], ";", "\[IndentingNewLine]", 
+          RowBox[{"mp3OutputFile", "=", 
+           RowBox[{"FileNameJoin", "[", 
+            RowBox[{"{", 
+             RowBox[{"outputFolder", ",", 
+              RowBox[{"sanitizedBaseName", "<>", "mp3ExportFormat"}]}], "}"}],
+             "]"}]}], ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+          RowBox[{"Export", "[", "\[IndentingNewLine]", 
+           RowBox[{"wavOutputFile", ",", "audioTrack", ",", 
+            RowBox[{"SampleRate", "\[Rule]", "16000"}], ",", 
+            RowBox[{"AudioEncoding", "\[Rule]", "\"\<Integer16\>\""}]}], 
+           "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+          RowBox[{"Export", "[", 
+           RowBox[{"mp3OutputFile", ",", "audioTrack", ",", "\"\<MP3\>\""}], 
+           "]"}], ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+          RowBox[{"Print", "[", 
+           RowBox[{"\"\<Exported WAV: \>\"", ",", "wavOutputFile"}], "]"}], 
+          ";", "\[IndentingNewLine]", 
+          RowBox[{"Print", "[", 
+           RowBox[{"\"\<Exported MP3: \>\"", ",", "mp3OutputFile"}], "]"}], 
+          ";"}]}], "\[IndentingNewLine]", "]"}]}], "]"}], ",", "videoFiles"}],
+     "\[IndentingNewLine]", "]"}], "//", "AbsoluteTiming"}]}]], "Input",
+ CellChangeTimes->{{3.9843849374162664`*^9, 3.984384991641176*^9}, 
+   3.9843851869614315`*^9, {3.9843852593057365`*^9, 3.984385265840064*^9}, {
+   3.9843854076500225`*^9, 3.984385433573036*^9}, {3.984385501027135*^9, 
+   3.984385503807974*^9}, {3.9843855347601204`*^9, 3.984385552712782*^9}, 
+   3.9843856775877385`*^9, {3.984385803177896*^9, 3.9843858516739836`*^9}, 
+   3.98438595309636*^9, 3.984386279671114*^9, {3.9869993866625476`*^9, 
+   3.9869993885266185`*^9}},
+ CellLabel->
+  "In[172]:=",ExpressionUUID->"017e09de-be5a-4c6c-bd24-4c992c982296"]
+},
+WindowSize->{852.5999999999999, 1468.2},
+WindowMargins->{{Automatic, -863.4000000000001}, {Automatic, -272.4}},
+TaggingRules->{"TryRealOnly" -> False},
+Magnification:>1. Inherited,
+FrontEndVersion->"12.1 for Microsoft Windows (64-bit) (June 9, 2020)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"39ef7fe3-ac8f-461b-b22c-1aa4ab343285"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 2111, 60, 279, "Input",ExpressionUUID->"1056736f-4805-4d9d-a34e-75e4d3116bd4",
+ InitializationCell->True],
+Cell[2672, 82, 398, 10, 65, "Input",ExpressionUUID->"0fdca2f2-08e3-4e0b-b2d8-3b1603582809",
+ InitializationCell->True],
+Cell[3073, 94, 3445, 68, 478, "Input",ExpressionUUID->"017e09de-be5a-4c6c-bd24-4c992c982296"]
+}
+]
+*)
+
+(* End of internal cache information *)
+

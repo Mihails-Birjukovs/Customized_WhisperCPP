@@ -1,0 +1,1289 @@
+{
+  "schema_version": 1,
+  "title": "Phase 0 baseline-output corpus registry",
+  "last_inventory_date": "2026-10-25",
+  "scope": "Public metadata only: no authenticated URLs, Drive IDs, personal-name filenames, recordings, transcript contents or reference text.",
+  "source_drive": "Custom WhisperCPP Dev",
+  "folder_keys": {
+    "meeting_audio": "Example Input-Output/Example Set 2 -- Team Meeting Audio/Audio",
+    "meeting_transcripts": "Example Input-Output/Example Set 2 -- Team Meeting Audio/Transcripts",
+    "lecture_audio": "Example Input-Output/Example Set 1 -- Lecture Audio/Audio",
+    "lecture_transcripts": "Example Input-Output/Example Set 1 -- Lecture Audio/Transcripts"
+  },
+  "interpretation": {
+    "baseline_output": "Historical ASR output, not human-verified truth.",
+    "control": "Only provisional selection from output-level checks.",
+    "repetition": "Identical adjacent SRT subtitle text while timestamps advance; acoustic verification pending.",
+    "runtime": "Recorded configs match the legacy CUDA preset; binary version and reproducibility unverified."
+  },
+  "observations": {
+    "matched_recording_triplets": 40,
+    "team_meetings": 35,
+    "lectures": 5,
+    "physical_wav_files": 41,
+    "unpaired_extra_wav": "Lecture_3 within meeting audio directory (suspected duplicate)",
+    "suspected_output_repetition_cases": 8,
+    "text_encoding_exceptions": 1,
+    "example_corpus_folder_created_utc": "2026-10-16T23:13:12Z"
+  },
+  "records": [
+    {
+      "record_id": "lecture-0",
+      "group": "lecture",
+      "lecture_index": 0,
+      "source_assets": {
+        "audio": {
+          "folder_key": "lecture_audio",
+          "filename_glob": "Lecture[_ ]0*.wav",
+          "bytes": 309238028
+        },
+        "legacy_txt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_0*_run001.txt",
+          "bytes": 146783
+        },
+        "legacy_srt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_0*_run001.srt",
+          "bytes": 299960
+        },
+        "legacy_config": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_0*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "candidate_negative_control",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "lecture-1",
+      "group": "lecture",
+      "lecture_index": 1,
+      "source_assets": {
+        "audio": {
+          "folder_key": "lecture_audio",
+          "filename_glob": "Lecture[_ ]1*.wav",
+          "bytes": 381159468
+        },
+        "legacy_txt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_1*_run001.txt",
+          "bytes": 143182
+        },
+        "legacy_srt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_1*_run001.srt",
+          "bytes": 219412
+        },
+        "legacy_config": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_1*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "candidate_negative_control",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "lecture-2",
+      "group": "lecture",
+      "lecture_index": 2,
+      "source_assets": {
+        "audio": {
+          "folder_key": "lecture_audio",
+          "filename_glob": "Lecture[_ ]2*.wav",
+          "bytes": 394500140
+        },
+        "legacy_txt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_2*_run001.txt",
+          "bytes": 143931
+        },
+        "legacy_srt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_2*_run001.srt",
+          "bytes": 212673
+        },
+        "legacy_config": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_2*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "candidate_negative_control",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "lecture-3",
+      "group": "lecture",
+      "lecture_index": 3,
+      "source_assets": {
+        "audio": {
+          "folder_key": "lecture_audio",
+          "filename_glob": "Lecture[_ ]3*.wav",
+          "bytes": 388243500
+        },
+        "legacy_txt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_3*_run001.txt",
+          "bytes": 140572
+        },
+        "legacy_srt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_3*_run001.srt",
+          "bytes": 268360
+        },
+        "legacy_config": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_3*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "candidate_negative_control",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "duplicate_candidate": "Same-named same-sized lecture WAV appears in meeting audio directory; byte identity unverified."
+    },
+    {
+      "record_id": "lecture-4",
+      "group": "lecture",
+      "lecture_index": 4,
+      "source_assets": {
+        "audio": {
+          "folder_key": "lecture_audio",
+          "filename_glob": "Lecture[_ ]4*.wav",
+          "bytes": 393194028
+        },
+        "legacy_txt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_4*_run001.txt",
+          "bytes": 147644
+        },
+        "legacy_srt": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_4*_run001.srt",
+          "bytes": 636218
+        },
+        "legacy_config": {
+          "folder_key": "lecture_transcripts",
+          "filename_glob": "Lecture_4*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "candidate_negative_control",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-01-22",
+      "group": "meeting",
+      "recording_date": "2026-01-22",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-01-22*.wav",
+          "bytes": 118390828
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-01-22*_run001.txt",
+          "bytes": 54415
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-01-22*_run001.srt",
+          "bytes": 89229
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-01-22*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "suspected_output_repetition",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "suspected_repetition": {
+        "source": "legacy SRT",
+        "method": "longest consecutive identical nontrivial subtitle-text run",
+        "segments": 112,
+        "start": "00:20:16.850",
+        "end": "00:24:14.310"
+      }
+    },
+    {
+      "record_id": "meeting-2026-01-29",
+      "group": "meeting",
+      "recording_date": "2026-01-29",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-01-29*.wav",
+          "bytes": 148410410
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-01-29*_run001.txt",
+          "bytes": 67168
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-01-29*_run001.srt",
+          "bytes": 143320
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-01-29*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-02-05",
+      "group": "meeting",
+      "recording_date": "2026-02-05",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-02-05*.wav",
+          "bytes": 102678572
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-02-05*_run001.txt",
+          "bytes": 23572
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-02-05*_run001.srt",
+          "bytes": 34104
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-02-05*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-02-10",
+      "group": "meeting",
+      "recording_date": "2026-02-10",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-02-10*.wav",
+          "bytes": 140040236
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-02-10*_run001.txt",
+          "bytes": 71782
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-02-10*_run001.srt",
+          "bytes": 132646
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-02-10*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "suspected_output_repetition",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "suspected_repetition": {
+        "source": "legacy SRT",
+        "method": "longest consecutive identical nontrivial subtitle-text run",
+        "segments": 581,
+        "start": "00:06:34.860",
+        "end": "00:29:07.590"
+      }
+    },
+    {
+      "record_id": "meeting-2026-03-03",
+      "group": "meeting",
+      "recording_date": "2026-03-03",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-03-03*.wav",
+          "bytes": 123664428
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-03*_run001.txt",
+          "bytes": 56024
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-03*_run001.srt",
+          "bytes": 109166
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-03*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-03-10",
+      "group": "meeting",
+      "recording_date": "2026-03-10",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-03-10*.wav",
+          "bytes": 82446380
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-10*_run001.txt",
+          "bytes": 35819
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-10*_run001.srt",
+          "bytes": 55471
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-10*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "encoding_issue": "Legacy TXT not UTF-8 readable via Drive text fetch; raw inspection pending."
+    },
+    {
+      "record_id": "meeting-2026-03-17",
+      "group": "meeting",
+      "recording_date": "2026-03-17",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-03-17*.wav",
+          "bytes": 140884044
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-17*_run001.txt",
+          "bytes": 62401
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-17*_run001.srt",
+          "bytes": 118663
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-17*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-03-24",
+      "group": "meeting",
+      "recording_date": "2026-03-24",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-03-24*.wav",
+          "bytes": 160139308
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-24*_run001.txt",
+          "bytes": 71154
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-24*_run001.srt",
+          "bytes": 155925
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-24*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-03-31",
+      "group": "meeting",
+      "recording_date": "2026-03-31",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-03-31*.wav",
+          "bytes": 159764524
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-31*_run001.txt",
+          "bytes": 49953
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-31*_run001.srt",
+          "bytes": 85603
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-03-31*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "suspected_output_repetition",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "suspected_repetition": {
+        "source": "legacy SRT",
+        "method": "longest consecutive identical nontrivial subtitle-text run",
+        "segments": 189,
+        "start": "00:47:00.570",
+        "end": "01:23:12.640"
+      }
+    },
+    {
+      "record_id": "meeting-2026-04-02",
+      "group": "meeting",
+      "recording_date": "2026-04-02",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-04-02*.wav",
+          "bytes": 101150764
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-02*_run001.txt",
+          "bytes": 40590
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-02*_run001.srt",
+          "bytes": 69932
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-02*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-04-07",
+      "group": "meeting",
+      "recording_date": "2026-04-07",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-04-07*.wav",
+          "bytes": 59400236
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-07*_run001.txt",
+          "bytes": 25269
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-07*_run001.srt",
+          "bytes": 36485
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-07*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-04-14",
+      "group": "meeting",
+      "recording_date": "2026-04-14",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-04-14*.wav",
+          "bytes": 155462028
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-14*_run001.txt",
+          "bytes": 64581
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-14*_run001.srt",
+          "bytes": 142215
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-14*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-04-21",
+      "group": "meeting",
+      "recording_date": "2026-04-21",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-04-21*.wav",
+          "bytes": 42414124
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-21*_run001.txt",
+          "bytes": 13286
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-21*_run001.srt",
+          "bytes": 19562
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-21*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "candidate_negative_control",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-04-28",
+      "group": "meeting",
+      "recording_date": "2026-04-28",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-04-28*.wav",
+          "bytes": 173486122
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-28*_run001.txt",
+          "bytes": 80384
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-28*_run001.srt",
+          "bytes": 158642
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-04-28*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-05-05",
+      "group": "meeting",
+      "recording_date": "2026-05-05",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-05-05*.wav",
+          "bytes": 111860044
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-05*_run001.txt",
+          "bytes": 49377
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-05*_run001.srt",
+          "bytes": 77237
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-05*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-05-12",
+      "group": "meeting",
+      "recording_date": "2026-05-12",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-05-12*.wav",
+          "bytes": 111515692
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-12*_run001.txt",
+          "bytes": 49452
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-12*_run001.srt",
+          "bytes": 94209
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-12*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-05-19",
+      "group": "meeting",
+      "recording_date": "2026-05-19",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-05-19*.wav",
+          "bytes": 244348972
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-19*_run001.txt",
+          "bytes": 111731
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-19*_run001.srt",
+          "bytes": 216626
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-19*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-05-26",
+      "group": "meeting",
+      "recording_date": "2026-05-26",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-05-26*.wav",
+          "bytes": 211826732
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-26*_run001.txt",
+          "bytes": 96160
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-26*_run001.srt",
+          "bytes": 212365
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-05-26*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-06-09",
+      "group": "meeting",
+      "recording_date": "2026-06-09",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-06-09*.wav",
+          "bytes": 220574028
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-06-09*_run001.txt",
+          "bytes": 122199
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-06-09*_run001.srt",
+          "bytes": 203811
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-06-09*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "suspected_output_repetition",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "suspected_repetition": {
+        "source": "legacy SRT",
+        "method": "longest consecutive identical nontrivial subtitle-text run",
+        "segments": 543,
+        "start": "01:35:25.300",
+        "end": "01:54:47.380"
+      }
+    },
+    {
+      "record_id": "meeting-2026-06-16",
+      "group": "meeting",
+      "recording_date": "2026-06-16",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-06-16*.wav",
+          "bytes": 112746540
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-06-16*_run001.txt",
+          "bytes": 48438
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-06-16*_run001.srt",
+          "bytes": 98655
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-06-16*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-06-30",
+      "group": "meeting",
+      "recording_date": "2026-06-30",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-06-30*.wav",
+          "bytes": 151711788
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-06-30*_run001.txt",
+          "bytes": 61260
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-06-30*_run001.srt",
+          "bytes": 132966
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-06-30*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "candidate_negative_control",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-07-07",
+      "group": "meeting",
+      "recording_date": "2026-07-07",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-07-07*.wav",
+          "bytes": 44712044
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-07*_run001.txt",
+          "bytes": 7588
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-07*_run001.srt",
+          "bytes": 13370
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-07*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "suspected_output_repetition",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "suspected_repetition": {
+        "source": "legacy SRT",
+        "method": "longest consecutive identical nontrivial subtitle-text run",
+        "segments": 12,
+        "start": "00:15:13.200",
+        "end": "00:23:07.030"
+      }
+    },
+    {
+      "record_id": "meeting-2026-07-14",
+      "group": "meeting",
+      "recording_date": "2026-07-14",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-07-14*.wav",
+          "bytes": 190763052
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-14*_run001.txt",
+          "bytes": 106783
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-14*_run001.srt",
+          "bytes": 264250
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-14*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-07-21",
+      "group": "meeting",
+      "recording_date": "2026-07-21",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-07-21*.wav",
+          "bytes": 172496940
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-21*_run001.txt",
+          "bytes": 66052
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-21*_run001.srt",
+          "bytes": 147898
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-21*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-07-28",
+      "group": "meeting",
+      "recording_date": "2026-07-28",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-07-28*.wav",
+          "bytes": 160516140
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-28*_run001.txt",
+          "bytes": 65694
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-28*_run001.srt",
+          "bytes": 112986
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-07-28*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-08-04",
+      "group": "meeting",
+      "recording_date": "2026-08-04",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-08-04*.wav",
+          "bytes": 148486188
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-04*_run001.txt",
+          "bytes": 62883
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-04*_run001.srt",
+          "bytes": 95683
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-04*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "suspected_output_repetition",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "suspected_repetition": {
+        "source": "legacy SRT",
+        "method": "longest consecutive identical nontrivial subtitle-text run",
+        "segments": 22,
+        "start": "00:45:19.980",
+        "end": "00:46:19.340"
+      }
+    },
+    {
+      "record_id": "meeting-2026-08-11",
+      "group": "meeting",
+      "recording_date": "2026-08-11",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-08-11*.wav",
+          "bytes": 165603372
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-11*_run001.txt",
+          "bytes": 63759
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-11*_run001.srt",
+          "bytes": 131955
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-11*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-08-18",
+      "group": "meeting",
+      "recording_date": "2026-08-18",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-08-18*.wav",
+          "bytes": 207018028
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-18*_run001.txt",
+          "bytes": 80127
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-18*_run001.srt",
+          "bytes": 177417
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-18*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-08-25",
+      "group": "meeting",
+      "recording_date": "2026-08-25",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-08-25*.wav",
+          "bytes": 143540266
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-25*_run001.txt",
+          "bytes": 59365
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-25*_run001.srt",
+          "bytes": 117070
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-08-25*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-09-01",
+      "group": "meeting",
+      "recording_date": "2026-09-01",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-09-01*.wav",
+          "bytes": 161980460
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-01*_run001.txt",
+          "bytes": 109139
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-01*_run001.srt",
+          "bytes": 182522
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-01*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "suspected_output_repetition",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "suspected_repetition": {
+        "source": "legacy SRT",
+        "method": "longest consecutive identical nontrivial subtitle-text run",
+        "segments": 1430,
+        "start": "00:30:11.330",
+        "end": "01:24:13.340"
+      }
+    },
+    {
+      "record_id": "meeting-2026-09-08",
+      "group": "meeting",
+      "recording_date": "2026-09-08",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-09-08*.wav",
+          "bytes": 250359852
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-08*_run001.txt",
+          "bytes": 111876
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-08*_run001.srt",
+          "bytes": 214041
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-08*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-09-15",
+      "group": "meeting",
+      "recording_date": "2026-09-15",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-09-15*.wav",
+          "bytes": 253978668
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-15*_run001.txt",
+          "bytes": 50571
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-15*_run001.srt",
+          "bytes": 83447
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-15*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "suspected_output_repetition",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified",
+      "suspected_repetition": {
+        "source": "legacy SRT",
+        "method": "longest consecutive identical nontrivial subtitle-text run",
+        "segments": 119,
+        "start": "01:07:07.290",
+        "end": "02:12:10.540"
+      }
+    },
+    {
+      "record_id": "meeting-2026-09-22",
+      "group": "meeting",
+      "recording_date": "2026-09-22",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-09-22*.wav",
+          "bytes": 81438764
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-22*_run001.txt",
+          "bytes": 34765
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-22*_run001.srt",
+          "bytes": 77026
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-22*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-09-29",
+      "group": "meeting",
+      "recording_date": "2026-09-29",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-09-29*.wav",
+          "bytes": 240236588
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-29*_run001.txt",
+          "bytes": 104076
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-29*_run001.srt",
+          "bytes": 172077
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-09-29*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "untriaged",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    },
+    {
+      "record_id": "meeting-2026-10-06",
+      "group": "meeting",
+      "recording_date": "2026-10-06",
+      "source_assets": {
+        "audio": {
+          "folder_key": "meeting_audio",
+          "filename_glob": "*2026-10-06*.wav",
+          "bytes": 217370668
+        },
+        "legacy_txt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-10-06*_run001.txt",
+          "bytes": 78479
+        },
+        "legacy_srt": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-10-06*_run001.srt",
+          "bytes": 163835
+        },
+        "legacy_config": {
+          "folder_key": "meeting_transcripts",
+          "filename_glob": "*2026-10-06*_run001_config.txt",
+          "bytes": 637
+        }
+      },
+      "classification": "candidate_negative_control",
+      "baseline_output_status": "present_not_reproduced",
+      "transcript_reference_status": "not_human_verified"
+    }
+  ]
+}
