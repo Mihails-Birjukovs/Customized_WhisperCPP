@@ -3,7 +3,7 @@
 This development track provides a **Vulkan GPU backend** edition of the
 existing Windows whisper.cpp batch-transcription workflow, intended for
 Vulkan-capable AMD and Intel graphics (and other supported Vulkan devices).
-It is separate from the ongoing error-adaptive transcription work.
+This package is a backend candidate for the unified CPU/CUDA/Vulkan error-adaptive framework. Shared transcription orchestration, error detection, retry policy and output post-processing remain backend-independent.
 
 ## Building in GitHub Actions
 
@@ -24,6 +24,14 @@ A successful build on a hosted Windows runner does **not** establish
 successful GPU inference on an actual AMD/Intel computer.
 
 The packaged archive deliberately includes **no ASR or VAD model weights**.
+
+### CI executable-startup diagnostics (candidate correction, not yet validated in CI)
+
+The original PR #2 CI compiled and packaged correctly but the subsequent `whisper-cli.exe --version` step exited nonzero without a Windows loader diagnostic. The earlier CI artifact from source SHA `1f42913473fb89fd778e62ab89c973cceaa13be5` has now passed `--version` and actual Vulkan0 inference on a physical RTX 3070 workstation. The failing runner was configured with `install_runtime: false`, which makes an absent Vulkan loader a strong but unproven cause.
+
+The local workflow candidate enables the action's CI-only Windows Vulkan runtime, adds its `runtime/x64` directory to the **runner PATH** if supplied, and logs loader presence plus the actual executable exit code. Do **not** copy `vulkan-1.dll` into the exported package. The candidate fix must pass a new GitHub Actions run before the CI gate is considered green; runner startup does not certify GPU inference.
+
+Actual baseline performance and transcript parity must be tested independently with an identical model/audio/decoding configuration. On the physical RTX 3070, the first Vulkan JFK run reported explicit `ggml_vulkan` GPU use but its PowerShell wrapper failed to capture exit code; corrected runs 2 and 3 exited zero in approximately 0.733/0.718 s. CPU execution of the Silero VAD subcomponent is expected and not a Vulkan ASR fallback.
 
 ## Manual Windows build
 

@@ -36,7 +36,7 @@ jobs:
         uses: jakoch/install-vulkan-sdk-action@d17de7e2f5e50efb5d2123efed18497d3c58c533 # v1
         with:
           vulkan_version: '1.4.321.1'
-          install_runtime: false
+          install_runtime: true
           cache: true
       - name: Check Vulkan toolchain
         run: |
@@ -58,12 +58,30 @@ jobs:
       - name: Stage and verify distribution
         run: |
           ./scripts/windows/vulkan/package-vulkan.ps1 -BuildRoot build-windows-vulkan -OutputDir dist/Whisper_Vulkan_Windows_x64
+      - name: Check CI Vulkan loader availability
+        run: |
+          $sdkLoader = Join-Path $env:VULKAN_SDK 'runtime/x64/vulkan-1.dll'
+          $systemLoader = Join-Path $env:WINDIR 'System32/vulkan-1.dll'
+          Write-Host "SDK Vulkan loader: $(Test-Path $sdkLoader) ($sdkLoader)"
+          Write-Host "System Vulkan loader: $(Test-Path $systemLoader) ($systemLoader)"
+          if (Test-Path $sdkLoader) {
+            $pathDir = Split-Path -Parent $sdkLoader
+            Add-Content -Path $env:GITHUB_PATH -Value $pathDir
+            Write-Host "Adding CI-only Vulkan loader directory to PATH: $pathDir"
+          } elseif (-not (Test-Path $systemLoader)) {
+            throw 'Neither the SDK runtime directory nor the Windows System32 Vulkan loader is available'
+          }
+          Write-Host 'The loader is not added to the distributable archive.'
       - name: Package executable startup smoke test
         run: |
           $exe = 'dist/Whisper_Vulkan_Windows_x64/whisper-cli.exe'
           & $exe --version
-          if ($LASTEXITCODE -ne 0) { throw 'Packaged whisper-cli.exe failed to start' }
-          Write-Host 'CLI startup passed. GPU execution still requires AMD/Intel hardware.'
+          $startupCode = $LASTEXITCODE
+          Write-Host "Packaged CLI startup exit code: $startupCode"
+          if ($null -eq $startupCode -or $startupCode -ne 0) {
+            throw "Packaged whisper-cli.exe startup failed (exit code $startupCode); inspect loader and VC++ runtime diagnostics."
+          }
+          Write-Host 'CLI startup passed. No GPU inference is claimed by this test.'
       - name: Upload Vulkan Windows package
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
