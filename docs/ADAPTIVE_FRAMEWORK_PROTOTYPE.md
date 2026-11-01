@@ -4,7 +4,7 @@ This is a **prototype**, not a production transcript repair tool. It is intentio
 
 The `adaptive_whisper` Python package provides:
 
-- `backend.py`: one argument builder, bounded native subprocess runner, hashing/provenance, optional `-ojf` JSON and explicit CPU/CUDA/Vulkan backend-evidence checks.
+- `backend.py`: one argument builder, bounded native subprocess runner, hashing/provenance, optional `-ojf` JSON with **strict UTF-8 and JSON syntax integrity gate**, and explicit CPU/CUDA/Vulkan backend-evidence checks.
 - `diagnostics.py`: SRT parser, timestamp checks and conservative consecutive-caption repetition candidates.
 - `recovery.py`: bounded retry-window planner with global timestamp mapping and explicit incomplete-coverage status.
 - `stitch.py`: provisional SRT assembly with source cue ownership and a boundary conflict ledger. An optional joint-caption-gap handoff strategy does not assume such gaps are acoustic silence.
@@ -18,3 +18,5 @@ python -m unittest discover -s tests/adaptive_whisper -v
 ```
 
 CI runs these tests without models or audio. Separate, explicitly authorized GPU hardware validation is required for Vulkan/CUDA. Earlier RTX 3070 hardware tests and scientific-fixture tests were conducted locally with separate private manifests; those fixtures are not included here. PR #2 covers the Windows Vulkan package and is independent of this experimental core.
+
+**Native JSON limitation:** Some historical Windows CUDA Large-v3 runs produced TXT/SRT and a native JSON file but that JSON contains invalid UTF-8. The framework separately records inference success and artifact integrity. It does not silently replace invalid bytes or claim native JSON acceptance merely because the file exists.

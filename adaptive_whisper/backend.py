@@ -59,6 +59,25 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def validate_native_json_utf8(path: Path) -> dict[str, Any]:
+    """Strictly validate native -ojf without modifying or re-encoding its bytes."""
+    if not path.is_file():
+        return {"present": False, "utf8_valid": False, "json_valid": False,
+                "first_invalid_utf8_byte": None}
+    try:
+        data = path.read_bytes().decode("utf-8-sig", errors="strict")
+    except UnicodeDecodeError as exc:
+        return {"present": True, "utf8_valid": False, "json_valid": False,
+                "first_invalid_utf8_byte": exc.start}
+    try:
+        json.loads(data)
+    except json.JSONDecodeError:
+        return {"present": True, "utf8_valid": True, "json_valid": False,
+                "first_invalid_utf8_byte": None}
+    return {"present": True, "utf8_valid": True, "json_valid": True,
+            "first_invalid_utf8_byte": None}
+
+
 def ensure_inside(path: Path, root: Path) -> Path:
     """Canonical path guard, including symlinks/junctions."""
     absolute = path.resolve(strict=True)
@@ -159,7 +178,12 @@ class WhisperCppAdapter:
         evidence = self.identify_backend(stderr)
         txt = (output_dir / "transcript.txt").is_file()
         srt = (output_dir / "transcript.srt").is_file()
-        native_json = (output_dir / "transcript.json").is_file()
+        native_status = validate_native_json_utf8(output_dir / "transcript.json") if profile.native_json_full else {
+            "present": False, "utf8_valid": False, "json_valid": False, "first_invalid_utf8_byte": None
+        }
+        native_json = native_status["present"]
+        inference_passed = (exit_code == 0 and not timed_out and txt and srt
+                            and (self.engine == Engine.CPU or evidence.actual_gpu_selected))
         record = {
             "schema": "whispercpp/backend-adapter-prototype/v1",
             "engine": self.engine.value, "command": command,
@@ -168,10 +192,13 @@ class WhisperCppAdapter:
             "txt_exists": txt, "srt_exists": srt,
             "native_json_full_requested": profile.native_json_full,
             "native_json_full_exists": native_json,
+            "native_json_utf8_valid": native_status["utf8_valid"],
+            "native_json_parse_valid": native_status["json_valid"],
+            "native_json_first_invalid_utf8_byte": native_status["first_invalid_utf8_byte"],
+            "inference_passed": inference_passed,
             "evidence": {**asdict(evidence), "engine": evidence.engine.value},
-            "accepted": exit_code == 0 and not timed_out and txt and srt
-                        and (not profile.native_json_full or native_json)
-                        and (self.engine == Engine.CPU or evidence.actual_gpu_selected),
+            "accepted": inference_passed
+                        and (not profile.native_json_full or native_status["json_valid"]),
         }
         (output_dir / "result.json").write_text(json.dumps(record, indent=2), encoding="utf-8")
         return record

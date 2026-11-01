@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from adaptive_whisper.backend import Engine, DecodeProfile, WhisperCppAdapter, ensure_inside
+from adaptive_whisper.backend import Engine, DecodeProfile, WhisperCppAdapter, ensure_inside, validate_native_json_utf8
 
 SANDBOX = Path(os.environ.get("WHISPER_TEST_TMP_ROOT") or tempfile.gettempdir()).resolve()
 SANDBOX.mkdir(parents=True, exist_ok=True)
@@ -50,6 +50,26 @@ class BackendContractTests(unittest.TestCase):
             for flag in ("-mc", "-bs", "-bo", "-tp", "-tpi", "--vad", "-vm",
                          "-vt", "-vsd", "-vspd", "-vp", "-nth", "-otxt", "-osrt"):
                 self.assertIn(flag, arglist)
+
+    def test_json_utf8_integrity_gate(self):
+        valid = self.root / "valid.json"
+        valid.write_bytes(b'{"transcription": []}')
+        status = validate_native_json_utf8(valid)
+        self.assertTrue(status["utf8_valid"])
+        self.assertTrue(status["json_valid"])
+        bad_encoding = self.root / "bad_utf8.json"
+        bad_encoding.write_bytes(b'{"transcription": "\xff"}')
+        status = validate_native_json_utf8(bad_encoding)
+        self.assertFalse(status["utf8_valid"])
+        self.assertFalse(status["json_valid"])
+        self.assertEqual(status["first_invalid_utf8_byte"],len(b'{"transcription": "'))
+        malformed = self.root / "bad_syntax.json"
+        malformed.write_text('{"unfinished":',encoding="utf-8")
+        status = validate_native_json_utf8(malformed)
+        self.assertTrue(status["utf8_valid"])
+        self.assertFalse(status["json_valid"])
+        missing = validate_native_json_utf8(self.root / "not_present.json")
+        self.assertFalse(missing["present"])
 
     def test_optional_native_json_is_shared(self):
         for engine in (Engine.CPU, Engine.CUDA, Engine.VULKAN):
