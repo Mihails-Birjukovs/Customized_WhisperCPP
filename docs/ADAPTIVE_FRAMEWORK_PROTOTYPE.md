@@ -27,7 +27,7 @@ CI runs these tests without models or audio. Separate, explicitly authorized GPU
 
 `adaptive_whisper/controller.py` adds bounded output-level anomaly detection (short repeated n-grams, repeated SRT cues, CLI timeout/process failures) and a budgeted sequence of context-reset, reduced-boundary-count, temperature-adjusted, and VAD-adjusted retries. Strategies may optionally use different trusted adapters (for example CUDA followed by Vulkan) without duplicating diagnostic logic.
 
-**Explicit limitations:** This is an offline/post-run or timeout-triggered controller, **not yet a live token-stream watchdog**. It processes at most one selected anomaly interval per current invocation; additional triggers remain unprocessed and are reported. It requires a mono 16-kHz PCM16 source and a trusted locally installed native executable. Each strategy must cover its entire selected source interval. Every completed retry includes raw-output evidence, SHA-256s, JSON integrity or reversible derivation, valid SRT timing and explicit boundary-conflict counts.
+**Explicit limitations:** This is an offline/post-run or timeout-triggered controller, **not yet a live token-stream watchdog**. The legacy `run_adaptive` entry point processes one selected anomaly interval per invocation; additional triggers remain unprocessed and are reported. The separate opt-in `run_adaptive_regions` orchestrator (Stage 8 below) can process multiple distinct intervals with shared budgets. It requires a mono 16-kHz PCM16 source and a trusted locally installed native executable. Each strategy must cover its entire selected source interval. Every completed retry includes raw-output evidence, SHA-256s, JSON integrity or reversible derivation, valid SRT timing and explicit boundary-conflict counts.
 
 A recovery with no detected loop and a disputed join remains `PATHOLOGY_CLEARED_JOIN_REVIEW_REQUIRED`. No automatic publication, historical-file replacement, or word-accuracy claim is made. A parameter/engine change is applied only if previous attempts failed or had unresolved join problems; the best permitted candidate is chosen by explicit structural conflict count rather than by WER.
 
@@ -76,3 +76,88 @@ A limited local retry must **not** be labeled a complete reconstructed recording
 Source-time ownership spanning the complete PCM recording is different from **complete recognized speech**. Optional local audio-energy/caption overlap is explicitly labeled a proxy and should be reviewed across multiple dBFS thresholds. A native cue ending up to 100 ms beyond the PCM end may be retained but is flagged; more severe timing violations and source-path traversal are rejected.
 
 The module and new synthetic tests are backend-neutral. Real WAVs, private SRTs, review decisions and workstation-specific acceptance manifests stay out of GitHub.
+
+
+## Stage 8: bounded multi-region recovery (experimental)
+
+The new `adaptive_whisper/regions.py` accepts several independently
+detected output-level pathologies from one mono 16-kHz PCM16 recording.
+`plan_regions` sorts them on the source clock and combines intersecting
+intervals, including intervals within an explicitly chosen grouping guard.
+It retains all member triggers and does not equate anomalies with verified
+speech errors. Distinct regions are retried chronologically through the
+existing `run_adaptive` implementation, using an explicitly checked
+detected-trigger override. Each region writes a separate immutable decision
+ledger and provisional SRT; the aggregate ledger documents recovered,
+unresolved and deferred regions.
+
+Usage from Python: `run_adaptive_regions(workspace, adapter, source_audio,
+baseline_srt, baseline_failed, output_parent, model_name, vad_name,
+initial_profile, policy=AdaptivePolicy(max_regions=3, ...))`.
+The default `max_regions=1` is unchanged, so processing more than one
+region is an explicit opt-in. The source input, output parent and historical
+SRT must remain inside the trusted workspace.
+
+**Budget semantics:** max decoded source milliseconds, number of native jobs,
+and elapsed wall time are shared across region invocations (not reset for
+every anomaly); `max_attempts` remains per region. Work already spent
+is never treated as available to a later region. An excluded region is
+marked deferred, not recovered. Mode explicitly rejects
+`RetryStrategy(scope="full_source")`: full-source VAD/parameter experiments
+belong to a separate intervention, rather than repeatedly decoding the
+entire recording for multiple local regions. Strategy-specific backend
+fallbacks still use the existing adapter injection.
+
+**Output safety:** By default, no cross-region splice occurs. Explicit
+`compose_full_timeline_preview=True` invokes experimental multi-region
+full-clock assembly **only when every detected region is structurally cleared**,
+and a historical SRT exists. Recovery ownership windows must not overlap:
+ambiguous padded-window ownership is rejected before creating a composite,
+and the refusal is recorded as `BLOCKED_OVERLAPPING_RECOVERY_WINDOWS`.
+The input alternatives remain available in their independent region folders.
+The composer selects whole cues by source time and preserves historical
+captions between the repaired windows. No word is cut or synthetically filled.
+Its manifest records SHA-256s, per-cue provenance, original-clock ownership,
+source-boundary crossings, cross-origin cue overlaps (including nonadjacent),
+caption gaps, optional acoustic **energy** proxies and inherited native-window
+join conflicts. A structurally clean preview is never independently verified
+speech. All outputs remain private/provisional, non-destructive and prohibited
+from automatic release. Existing `run_adaptive` calls remain backward-compatible.
+
+**Boundary analysis:** `full_timeline.py` now inspects all overlapping
+cross-source cue pairs (including nonadjacent pairs nested under a long
+historical cue), not only adjacent captions. This closes a missed-hazard
+case without changing any transcript text or assuming energy implies speech.
+
+Synthetic regressions cover independent regions, grouped intervals, budget
+exhaustion, region limits, historical-input immutability, unsafe full-source
+scope, unknown trigger override and nonadjacent splice overlap. These tests
+are model-free. Real CUDA/Vulkan recordings, June/July/August evidence,
+blind listening and acoustically validated WER remain separate follow-up
+acceptance gates.
+
+
+### Stage 8 hash-gated archival regression (2026-11-11)
+
+A separate **private**, immutable-input replay used the existing August 4 and
+July 7 PCM16 WAVs, historical SRTs and already-computed recovery SRTs.
+Each input SHA-256 was checked before and after; all matched. No native
+whisper.cpp decoding was run. The new multi-timeline compositor used one
+region per replay case, for compatibility testing; this does **not** validate
+two independently decoded regions on the same real recording.
+
+- **August 4 localized source segment:** ten output cues matched the earlier
+  Stage 7 combined preview exactly in cue text and timestamps. Five boundary
+  hazards were recorded, including the pre-existing 1,620-ms cross-origin
+  overlap and native 20-ms timestamp rounding.
+- **July 7 long-context localized recovery:** 243 preview cues; two
+  cross-boundary hazards. One inherited internal window-join conflict remains
+  review-required.
+- **July 7 full-source VAD control:** 246 preview cues; zero structural
+  boundary hazards. This does not establish linguistic accuracy, complete
+  speech transcription, or a human WER.
+
+The private replay script, input locations, private WAV/SRT files and
+machine-readable audit remain in the workstation sandbox and are not committed
+to GitHub. A future real multi-anomaly native run and blinded boundary
+listening must precede any claim of full-clock speech correctness.

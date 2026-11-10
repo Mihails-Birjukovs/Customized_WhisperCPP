@@ -333,7 +333,9 @@ def run_adaptive(
     vad_name:str,
     initial_profile:DecodeProfile,
     policy:AdaptivePolicy=AdaptivePolicy(),
-    adapters_by_strategy:dict[str,NativeAdapter] | None = None
+    adapters_by_strategy:dict[str,NativeAdapter] | None = None,
+    *,
+    trigger_override:Trigger | None = None,
 )->dict[str,Any]:
     """Run automatically; generate only *provisional* recovery outputs.
 
@@ -356,11 +358,22 @@ def run_adaptive(
     source_frames,audio_ms=_source_pcm16(src)
     if output_parent.exists():
         raise FileExistsError("Adaptive output root already exists")
-    output_parent.mkdir(exist_ok=False)
     baseline_detect=detect_pathologies(text,audio_ms,
                                      failure_or_timeout=baseline_failed,
                                      policy=policy.detection)
     trigger,eligible_count=_new_span_bounds(baseline_detect,audio_ms,policy)
+    if trigger_override is not None:
+        eligible=[t for t in baseline_detect if
+                  t.kind!='no_output_unverified' or policy.allow_unverified_no_output_trigger]
+        if (trigger_override.start_ms < 0 or
+            trigger_override.start_ms >= audio_ms or
+            trigger_override.end_ms <= trigger_override.start_ms or
+            trigger_override.end_ms > audio_ms+100 or
+            not any(trigger_override.start_ms <= t.start_ms and
+                    trigger_override.end_ms >= t.end_ms for t in eligible)):
+            raise ValueError('Override must cover a detected eligible pathology within source time')
+        trigger=trigger_override
+    output_parent.mkdir(exist_ok=False)
     ordered_strategies, cost_estimates=(
         estimated_strategy_order(trigger,audio_ms,policy)
         if trigger is not None else ((),[])
@@ -375,7 +388,8 @@ def run_adaptive(
         "baseline_detected":[asdict(t) for t in baseline_detect],
         "eligible_triggers":eligible_count,
         "selected_trigger":asdict(trigger) if trigger else None,
-        "all_regions_processed":eligible_count <= policy.max_regions,
+        "trigger_selection_override":trigger_override is not None,
+        "all_regions_processed":eligible_count <= policy.max_regions and trigger_override is None,
         "cost_planning":{
             "enabled":policy.cost_aware,
             "assumed_native_rtf":policy.assumed_native_rtf,
