@@ -60,3 +60,9 @@ These engineering QA tools do **not** calculate WER/CER, infer a transcription g
 `region_output_diversity` and `region_energy_coverage` compare baseline and retry on the **same predefined original-audio time interval**, reporting text/caption diversity, longest exact repeated-caption run, and original PCM energy covered by subtitle timestamps at an explicit dBFS threshold. Region endpoints are frame-discretized with their uncertainty recorded. The functions never expose transcript words in the report and never confuse high sound energy with speech truth.
 
 **Important scientific limitation:** A recovered transcript may have high caption/energy overlap while omitting or misrecognizing words. Region diversity and energy coverage are engineering screening proxies, not a replacement for selective listening where speech loss is ambiguous. The absence of a long identical-caption run is necessary but not sufficient for final acoustic acceptance.
+
+### Native subtitle end-time rounding guard
+
+When an SRT-based pathology extends only a few milliseconds beyond the exact PCM duration, local retry planning now permits **at most 100 ms** of end-time rounding and safely clamps the *planned audio window* to the last real sample. The original unmodified trigger timestamp and the explicit adjustment are kept in the decision ledger. Larger out-of-bounds source intervals are rejected/marked infeasible rather than silently shortened. The correction is covered by scheduler and end-to-end fake-adapter unit tests and does not alter the native WAV or historical SRT.
+
+A limited local retry must **not** be labeled a complete reconstructed recording: prefix/suffix continuity and phrase retention remain distinct acceptance gates.

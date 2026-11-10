@@ -10,7 +10,7 @@ import wave
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from adaptive_whisper.backend import DecodeProfile
 from adaptive_whisper.controller import (
-    AdaptivePolicy,RetryStrategy,Trigger,estimated_strategy_order,run_adaptive
+    AdaptivePolicy,RetryStrategy,Trigger,estimated_strategy_order,run_adaptive,_planning_candidate
 )
 from test_controller import FakeAdapter,synthetic_cues
 
@@ -38,6 +38,21 @@ class SchedulingTests(unittest.TestCase):
         self.assertTrue(all(x["full_coverage_feasible"] for x in est))
         self.assertEqual(next(x for x in est if x["strategy"]=="full_vad")["estimated_jobs"],1)
         self.assertEqual(next(x for x in est if x["strategy"]=="full_vad")["estimated_redecode_ms"],60000)
+
+    def test_native_subtitle_endpoint_rounding_does_not_disable_local_backtracking(self):
+        trigger=Trigger("micro_loop",63790,75010,"single_cue_ngram")
+        short=RetryStrategy("local",25000,2000,2500,2500,4,(),180)
+        full=RetryStrategy("full",75000,0,0,0,1,(),180,scope="full_source")
+        plan=_planning_candidate(trigger,75000,short)
+        self.assertEqual(plan.start_ms,63790)
+        self.assertEqual(plan.end_ms,75000)
+        p=AdaptivePolicy(strategies=(short,full),cost_aware=True,
+            max_total_decode_ms=140000,max_total_jobs=6)
+        ordered,est=estimated_strategy_order(trigger,75000,p)
+        self.assertEqual(ordered[0].name,"local")
+        self.assertTrue(est[0]["full_coverage_feasible"])
+        with self.assertRaises(ValueError):
+            _planning_candidate(Trigger("micro_loop",63790,75200,"overhang"),75000,short)
 
     def test_disabling_cost_model_preserves_strategy_order(self):
         trigger=Trigger("micro_loop",10000,25000,"synthetic")

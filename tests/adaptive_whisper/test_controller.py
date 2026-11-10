@@ -210,6 +210,21 @@ class ControllerUnitTests(unittest.TestCase):
         self.assertEqual(result[0].start_ms,5000)
         self.assertEqual(result[0].end_ms,60000)
 
+    def test_ten_ms_native_srt_overhang_uses_local_backtrack(self):
+        srt_path=self.ws/"trailing_rounding.srt"
+        phrase="an unusual phrase repeated again"
+        srt_path.write_text(synthetic_cues([
+            (50000,60010," ".join([phrase]*4))]),encoding="utf-8")
+        fake=FakeAdapter()
+        policy=AdaptivePolicy(strategies=(
+            self.strategy("bounded_local",window=20000),),
+            max_total_decode_ms=80000,max_total_jobs=4,max_attempts=1)
+        result=self.invoke(fake,policy,baseline=srt_path,name="overhang_recovery")
+        self.assertEqual(result["selected_trigger"]["kind"],"micro_loop")
+        self.assertEqual(result["attempts"][0]["source_endpoint_clamp_ms"],10)
+        self.assertTrue(result["status"].startswith("PATHOLOGY_CLEARED"))
+        self.assertGreater(result["native_jobs_executed"],0)
+
     def test_per_strategy_backend_fallback_uses_same_shared_controller(self):
         failing_cuda=FakeAdapter(fail_default=True)
         working_vulkan=FakeAdapter()

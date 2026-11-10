@@ -251,8 +251,16 @@ def _new_span_bounds(triggers:tuple[Trigger,...],source_len:int,policy:AdaptiveP
 def _planning_candidate(trigger:Trigger,audio_ms:int,step:RetryStrategy)->RepetitionCandidate:
     if step.scope == "full_source":
         return RepetitionCandidate(0,audio_ms,1,0,audio_ms)
-    return RepetitionCandidate(trigger.start_ms,trigger.end_ms,1,0,
-                               trigger.end_ms-trigger.start_ms)
+    # The native SRT timebase can round its final cue a few milliseconds past
+    # the PCM end. Permit at most 100 ms of end rounding, and record original
+    # trigger times unchanged elsewhere in the decision ledger.
+    if (trigger.start_ms < 0 or trigger.start_ms >= audio_ms or
+            trigger.end_ms <= trigger.start_ms or
+            trigger.end_ms > audio_ms+100):
+        raise ValueError("Detector time interval outside source PCM tolerance")
+    end=min(trigger.end_ms,audio_ms)
+    return RepetitionCandidate(trigger.start_ms,end,1,0,
+                               end-trigger.start_ms)
 
 
 def estimated_strategy_order(trigger:Trigger,audio_ms:int,
@@ -408,7 +416,13 @@ def run_adaptive(
                 tail_ms=step.tail_ms if step.scope=="trigger" else 0,
                 max_jobs=min(step.max_jobs,remaining_jobs),
                 max_audio_ms=remaining_ms)
-            plan=plan_retries(_planning_candidate(trigger,audio_ms,step),audio_ms,rp)
+            try:
+                candidate=_planning_candidate(trigger,audio_ms,step)
+                plan=plan_retries(candidate,audio_ms,rp)
+            except ValueError:
+                attempt["status"]="SKIPPED_SOURCE_TRIGGER_OUT_OF_BOUNDS"
+                continue
+            attempt["source_endpoint_clamp_ms"]=max(0,trigger.end_ms-candidate.end_ms) if step.scope=="trigger" else 0
             attempt["planned_full_coverage"]=plan.full_coverage
             attempt["planned_windows"]=len(plan.windows)
             attempt["planned_audio_ms"]=sum(w.duration_ms for w in plan.windows)
