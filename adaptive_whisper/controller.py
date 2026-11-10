@@ -23,6 +23,7 @@ from .stitch import merge_windows
 from .native_json import write_canonical_separate, NativeJsonIntegrityError
 from .watchdog import WatchdogPolicy
 from .coverage import coverage_report,compare_machine_hypotheses
+from .full_timeline import write_full_timeline_preview
 
 
 @dataclass(frozen=True)
@@ -139,6 +140,8 @@ class RetryStrategy:
     scope: str = "trigger"  # or full_source; source coverage must remain complete
 
     def __post_init__(self):
+        if not isinstance(self.name,str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}",self.name):
+            raise ValueError("Retry strategy name must be a safe slug")
         if (self.window_ms < 1000 or self.overlap_ms < 0 or
                 self.overlap_ms >= self.window_ms or self.max_jobs < 1 or
                 self.timeout_s < 1 or self.lead_ms < 0 or self.tail_ms < 0):
@@ -176,6 +179,7 @@ class AdaptivePolicy:
     estimated_startup_s: float = 3.0
     boundary_review_penalty_s: float = 30.0
     watchdog: WatchdogPolicy | None = None
+    compose_full_timeline_preview: bool = False
 
     def __post_init__(self):
         if (self.assumed_native_rtf<=0 or self.estimated_startup_s<0 or
@@ -545,6 +549,49 @@ def run_adaptive(
                 if best[0][0]==0 else
                 "PATHOLOGY_CLEARED_JOIN_REVIEW_REQUIRED"
             )
+            if policy.compose_full_timeline_preview:
+                chosen=next(x for x in report["attempts"] if x["index"]==best[1])
+                if chosen["scope"]=="full_source":
+                    report["full_timeline"]={"status":"NOT_NEEDED_FULL_SOURCE",
+                                             "reference_splice_performed":False}
+                elif baseline_srt is None or not chosen["windows"]:
+                    report["full_timeline"]={"status":"SKIPPED_NO_HISTORICAL_BASELINE",
+                                             "reference_splice_performed":False}
+                else:
+                    work=output_parent/f"attempt_{best[1]:02d}_{chosen['strategy']}"
+                    source_window=(min(x["source_start_ms"] for x in chosen["windows"]),
+                                   max(x["source_end_ms"] for x in chosen["windows"]))
+                    try:
+                        source_preview=work/"provisional_recovery.srt"
+                        output_preview=work/"provisional_full_timeline.srt"
+                        output_ledger=work/"provisional_full_timeline_review.json"
+                        combined=write_full_timeline_preview(
+                            baseline_srt,source_preview,output_preview,output_ledger,
+                            source_audio=src,repaired_audio_window_ms=source_window)
+                        remaining=detect_pathologies(
+                            output_preview.read_text(encoding="utf-8"),audio_ms,
+                            policy=policy.detection)
+                        report["full_timeline"]={
+                            "status":combined["status"],
+                            "cue_count":combined["output_cue_count"],
+                            "hazards_count":combined["hazards_count"],
+                            "other_unresolved_triggers":[asdict(t) for t in remaining],
+                            "provisional_preview_sha256":sha256_file(output_preview),
+                            "historical_srt_unchanged":True,
+                            "auto_release_authorized":False
+                        }
+                        if (remaining or combined["hazards_count"] or
+                                chosen.get("join_conflicts",0)):
+                            report["status"]="PATHOLOGY_CLEARED_FULL_TIMELINE_REVIEW_REQUIRED"
+                        else:
+                            report["status"]="PATHOLOGY_CLEARED_FULL_TIMELINE_STRUCTURAL_UNVERIFIED"
+                    except (ValueError,UnicodeError,FileExistsError) as e:
+                        report["full_timeline"]={
+                            "status":"FAILED_REVIEW_REQUIRED",
+                            "reason_type":type(e).__name__,
+                            "source_historical_srt_unchanged":True,
+                        }
+                        report["status"]="PATHOLOGY_CLEARED_FULL_TIMELINE_ASSEMBLY_FAILED"
         elif all(x["status"].startswith("SKIPPED") for x in report["attempts"]):
             report["status"]="NO_RETRY_BUDGET_FOR_COMPLETE_COVERAGE"
     report["estimated_actual_wall_s"]=round(time.perf_counter()-begin,3)

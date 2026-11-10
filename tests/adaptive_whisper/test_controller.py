@@ -241,6 +241,35 @@ class ControllerUnitTests(unittest.TestCase):
         self.assertEqual(report["attempts"][0]["status"],"RETRY_REQUIRED_WINDOW_FAILURE")
         self.assertTrue(report["attempts"][1]["status"].startswith("PATHOLOGY_CLEARED"))
 
+    def test_opt_in_full_timeline_splice_flags_crossing_historical_caption(self):
+        old=self.ws/"crossing_baseline.srt"
+        phrase="The same repeated phrase appears again and again."
+        old.write_text(synthetic_cues([
+            (0,25000,"Important original speech across the retry start."),
+            (20000,26000,phrase),(26000,32000,phrase),
+            (32000,39000,phrase),(46000,49000,"Historical tail remains.")]),
+            encoding="utf-8")
+        before=old.read_bytes()
+        fake=FakeAdapter()
+        policy=AdaptivePolicy(strategies=(self.strategy("single_reset",window=45000),),
+            max_total_decode_ms=120000,max_attempts=1,
+            compose_full_timeline_preview=True)
+        report=self.invoke(fake,policy,baseline=old,name="composed")
+        self.assertEqual(report["selected_provisional_attempt"],1)
+        self.assertEqual(report["full_timeline"]["status"],"PROVISIONAL_REVIEW_REQUIRED")
+        self.assertGreater(report["full_timeline"]["hazards_count"],0)
+        self.assertEqual(report["status"],"PATHOLOGY_CLEARED_FULL_TIMELINE_REVIEW_REQUIRED")
+        result=self.ws/"composed/attempt_01_single_reset/provisional_full_timeline.srt"
+        self.assertTrue(result.exists())
+        self.assertIn("Historical tail remains.",result.read_text(encoding="utf-8"))
+        self.assertEqual(old.read_bytes(),before)
+
+    def test_safe_strategy_names_prevent_path_escape(self):
+        with self.assertRaises(ValueError):
+            RetryStrategy("../other_project",20000,2000,0,0,6)
+        with self.assertRaises(ValueError):
+            RetryStrategy("x/y",20000,2000,0,0,6)
+
     def test_unsafe_profile_field_rejected(self):
         with self.assertRaises(ValueError):
             self.strategy("unsafe",update=(("gpu_device",4),))

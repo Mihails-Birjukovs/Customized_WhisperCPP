@@ -66,3 +66,13 @@ These engineering QA tools do **not** calculate WER/CER, infer a transcription g
 When an SRT-based pathology extends only a few milliseconds beyond the exact PCM duration, local retry planning now permits **at most 100 ms** of end-time rounding and safely clamps the *planned audio window* to the last real sample. The original unmodified trigger timestamp and the explicit adjustment are kept in the decision ledger. Larger out-of-bounds source intervals are rejected/marked infeasible rather than silently shortened. The correction is covered by scheduler and end-to-end fake-adapter unit tests and does not alter the native WAV or historical SRT.
 
 A limited local retry must **not** be labeled a complete reconstructed recording: prefix/suffix continuity and phrase retention remain distinct acceptance gates.
+
+## Opt-in full-timeline reconstruction — experimental
+
+`adaptive_whisper/full_timeline.py` assembles a **provisional** full-audio-clock SRT from an immutable historical baseline and source-time-aligned localized retry output. It selects whole subtitle cues, retaining original healthy prefix/suffix and retry cue provenance (source index, timestamp, and text SHA-256), rather than trimming or silently synthesizing words at the boundary. The output ledger separately identifies baseline/retry caption overlap, disputed competing hypotheses, gaps, source-time rounding and any old captions that straddle the replacement window.
+
+`AdaptivePolicy(compose_full_timeline_preview=True)` opts into this step after a structurally cleared localized recovery; the default behavior is unchanged. A source-boundary conflict yields `PATHOLOGY_CLEARED_FULL_TIMELINE_REVIEW_REQUIRED` and **does not publish or overwrite a final transcript**. Even a structurally clean full-clock timeline is not independently verified speech completeness or WER.
+
+Source-time ownership spanning the complete PCM recording is different from **complete recognized speech**. Optional local audio-energy/caption overlap is explicitly labeled a proxy and should be reviewed across multiple dBFS thresholds. A native cue ending up to 100 ms beyond the PCM end may be retained but is flagged; more severe timing violations and source-path traversal are rejected.
+
+The module and new synthetic tests are backend-neutral. Real WAVs, private SRTs, review decisions and workstation-specific acceptance manifests stay out of GitHub.
