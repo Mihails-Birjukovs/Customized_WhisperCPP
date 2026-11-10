@@ -16,6 +16,8 @@ import subprocess
 import time
 from typing import Any
 
+from .watchdog import WatchdogPolicy, run_watched
+
 
 class Engine(str, Enum):
     CPU = "CPU"
@@ -140,7 +142,8 @@ class WhisperCppAdapter:
         return BackendEvidence(self.engine, True, False, None, vad_cpu, None)
 
     def run_once(self, audio: Path, model_name: str, vad_name: str,
-                 output_dir: Path, profile: DecodeProfile, timeout_s: int = 600) -> dict[str, Any]:
+                 output_dir: Path, profile: DecodeProfile, timeout_s: int = 600,
+                 watchdog: WatchdogPolicy | None = None) -> dict[str, Any]:
         """Run without overwriting. Preserves raw stderr/stdout and command metadata."""
         if timeout_s < 1:
             raise ValueError("Timeout must be positive")
@@ -160,19 +163,32 @@ class WhisperCppAdapter:
         env["CUDA_CACHE_PATH"] = str(self.workspace / "cache" / "cuda")
         env["HF_HOME"] = str(self.workspace / "cache" / "huggingface")
         begin = time.perf_counter()
-        try:
-            result = subprocess.run(command, cwd=self.runtime, env=env, timeout=timeout_s,
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    text=True, errors="replace", check=False)
-            exit_code: int | None = result.returncode
-            stdout, stderr = result.stdout, result.stderr
-            timed_out = False
-        except subprocess.TimeoutExpired as exc:
-            exit_code = None
-            timed_out = True
-            stdout = str(exc.stdout or b"")
-            stderr = str(exc.stderr or b"")
-        elapsed = round(time.perf_counter() - begin, 3)
+        watcher = None
+        if watchdog is not None:
+            watcher = run_watched(
+                command,cwd=self.runtime,env=env,
+                stdout_raw=output_dir / "stdout.raw.log",
+                stderr_raw=output_dir / "stderr.raw.log",
+                hard_timeout_s=timeout_s,policy=watchdog)
+            exit_code=watcher["exit_code"]
+            timed_out=watcher["timed_out"]
+            elapsed=watcher["elapsed_seconds"]
+            stdout=(output_dir/"stdout.raw.log").read_bytes().decode("utf-8",errors="replace")
+            stderr=(output_dir/"stderr.raw.log").read_bytes().decode("utf-8",errors="replace")
+        else:
+            try:
+                result = subprocess.run(command, cwd=self.runtime, env=env, timeout=timeout_s,
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        text=True, errors="replace", check=False)
+                exit_code: int | None = result.returncode
+                stdout, stderr = result.stdout, result.stderr
+                timed_out = False
+            except subprocess.TimeoutExpired as exc:
+                exit_code = None
+                timed_out = True
+                stdout = str(exc.stdout or b"")
+                stderr = str(exc.stderr or b"")
+            elapsed = round(time.perf_counter() - begin, 3)
         (output_dir / "stdout.log").write_text(stdout, encoding="utf-8")
         (output_dir / "stderr.log").write_text(stderr, encoding="utf-8")
         evidence = self.identify_backend(stderr)
@@ -196,6 +212,7 @@ class WhisperCppAdapter:
             "native_json_parse_valid": native_status["json_valid"],
             "native_json_first_invalid_utf8_byte": native_status["first_invalid_utf8_byte"],
             "inference_passed": inference_passed,
+            "watchdog": watcher,
             "evidence": {**asdict(evidence), "engine": evidence.engine.value},
             "accepted": inference_passed
                         and (not profile.native_json_full or native_status["json_valid"]),

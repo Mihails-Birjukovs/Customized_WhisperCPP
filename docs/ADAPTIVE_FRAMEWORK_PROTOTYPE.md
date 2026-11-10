@@ -32,3 +32,15 @@ CI runs these tests without models or audio. Separate, explicitly authorized GPU
 A recovery with no detected loop and a disputed join remains `PATHOLOGY_CLEARED_JOIN_REVIEW_REQUIRED`. No automatic publication, historical-file replacement, or word-accuracy claim is made. A parameter/engine change is applied only if previous attempts failed or had unresolved join problems; the best permitted candidate is chosen by explicit structural conflict count rather than by WER.
 
 **Synthetic tests:** `python -m unittest discover -s tests/adaptive_whisper -v` now covers 45 offline cases, including forced timeout recovery, bounded-audio exhaustion, decoder switching via injected adapters and exact preservation of baseline files. Native hardware integration tests and real recordings are kept entirely outside the public repository.
+
+## Opt-in progress watchdog and cost-aware scheduler
+
+`adaptive_whisper/watchdog.py` provides an optional native-process heartbeat supervisor with distinct startup-without-progress, stalled-progress, and hard-wall timeouts. It reads the actual CLI progress callback stream through dedicated stderr/stdout drain threads (without shell execution), preserves byte-exact raw logs and records observed percentage events and the termination reason. **The heartbeat cannot locate the exact stalled word and is not a live transcript-correctness detector.** Use conservative timeout parameters to avoid aborting a legitimate quiet decoder phase; no-progress runs that exit normally are not automatically classified as failed.
+
+`WhisperCppAdapter.run_once(..., watchdog=WatchdogPolicy(...))` opts into this behavior; existing calls without a watchdog use the original native subprocess runner. Controller `AdaptivePolicy(watchdog=...)` passes the same optional policy to native execution.
+
+The experimental `AdaptivePolicy(cost_aware=True)` ranks explicitly configured strategies using a transparent heuristic: planned seconds of audio × assumed native real-time factor + process startup overhead + a configured penalty per potential join. It rejects incomplete-coverage plans. Estimates are **not measured wall times** and must be calibrated per device/engine. `RetryStrategy(scope="full_source")` allows a bounded full-recording intervention such as changing only the VAD threshold, without universally changing the preserved default profile.
+
+Cost-aware scheduling remains **opt-in**. A retry with eliminated repetition but unresolved joins is provisional; a clean-looking transcript can still omit speech. Both options are intended for controlled, non-destructive experiments, not automatic replacement of historical recordings.
+
+Synthetic no-model tests additionally cover progress advancement, startup stalling, idle stalling, hard timeouts, raw-log preservation, cost-ranked fallbacks and incomplete full-source rejection. Run `python -m unittest discover -s tests/adaptive_whisper -v` for the complete portable suite.

@@ -21,6 +21,7 @@ from .diagnostics import diagnose_srt, parse_srt, RepetitionCandidate
 from .recovery import RetryPolicy, RetryWindow, plan_retries
 from .stitch import merge_windows
 from .native_json import write_canonical_separate, NativeJsonIntegrityError
+from .watchdog import WatchdogPolicy
 
 
 @dataclass(frozen=True)
@@ -134,12 +135,15 @@ class RetryStrategy:
     max_jobs: int
     profile_updates: tuple[tuple[str, float | int], ...] = ()
     timeout_s: int = 240
+    scope: str = "trigger"  # or full_source; source coverage must remain complete
 
     def __post_init__(self):
         if (self.window_ms < 1000 or self.overlap_ms < 0 or
                 self.overlap_ms >= self.window_ms or self.max_jobs < 1 or
                 self.timeout_s < 1 or self.lead_ms < 0 or self.tail_ms < 0):
             raise ValueError("Invalid retry strategy")
+        if self.scope not in ("trigger","full_source"):
+            raise ValueError("Invalid strategy scope")
         allowed={"temperature","temperature_inc","beams","best_of",
                  "vad_threshold","vad_pad_ms","vad_silence_ms","vad_speech_ms"}
         if any(k not in allowed for k,_ in self.profile_updates):
@@ -166,8 +170,16 @@ class AdaptivePolicy:
     min_cues_per_non_silent_window: int = 1
     allow_unverified_no_output_trigger: bool = False
     detection: DetectionPolicy = DetectionPolicy()
+    cost_aware: bool = False
+    assumed_native_rtf: float = .10
+    estimated_startup_s: float = 3.0
+    boundary_review_penalty_s: float = 30.0
+    watchdog: WatchdogPolicy | None = None
 
     def __post_init__(self):
+        if (self.assumed_native_rtf<=0 or self.estimated_startup_s<0 or
+                self.boundary_review_penalty_s<0):
+            raise ValueError("Invalid heuristic cost parameters")
         if (not self.strategies or self.max_attempts<1 or self.max_total_decode_ms<1000
                 or self.max_total_jobs<1 or self.max_wall_s<1 or self.max_regions<1
                 or self.stop_at_conflicts<0):
@@ -177,7 +189,8 @@ class AdaptivePolicy:
 class NativeAdapter(Protocol):
     def run_once(self, audio: Path, model_name: str, vad_name: str,
                  output_dir: Path, profile: DecodeProfile,
-                 timeout_s: int=600) -> dict[str,Any]: ...
+                 timeout_s: int=600,
+                 watchdog: WatchdogPolicy | None = None) -> dict[str,Any]: ...
 
 
 def _source_pcm16(path:Path)->tuple[int,int]:
@@ -234,6 +247,68 @@ def _new_span_bounds(triggers:tuple[Trigger,...],source_len:int,policy:AdaptiveP
     return (eligible[0] if eligible else None,len(eligible))
 
 
+def _planning_candidate(trigger:Trigger,audio_ms:int,step:RetryStrategy)->RepetitionCandidate:
+    if step.scope == "full_source":
+        return RepetitionCandidate(0,audio_ms,1,0,audio_ms)
+    return RepetitionCandidate(trigger.start_ms,trigger.end_ms,1,0,
+                               trigger.end_ms-trigger.start_ms)
+
+
+def estimated_strategy_order(trigger:Trigger,audio_ms:int,
+                             policy:AdaptivePolicy)->tuple[tuple[RetryStrategy,...],list[dict[str,Any]]]:
+    """Pre-run heuristic scheduling; NEVER claim these times were measured.
+
+    Cost is estimated native seconds plus per-process startup and an explicit
+    per-window-boundary review penalty. Plans without complete audio coverage
+    are ineligible. Source RTF must be calibrated per backend/device and must
+    not be misinterpreted as actual benchmark data.
+    """
+    if audio_ms < 1000:
+        raise ValueError("Recording shorter than minimum retry window")
+    candidates=[]
+    for ordinal,step in enumerate(policy.strategies):
+        window_ms=min(step.window_ms,audio_ms)
+        feasible=False
+        jobs=0
+        covered_ms=0
+        boundary_count=0
+        if window_ms<=policy.max_total_decode_ms:
+            try:
+                planning=RetryPolicy(
+                    window_ms=window_ms,overlap_ms=min(step.overlap_ms,window_ms-1),
+                    lead_ms=step.lead_ms if step.scope=="trigger" else 0,
+                    tail_ms=step.tail_ms if step.scope=="trigger" else 0,
+                    max_jobs=min(step.max_jobs,policy.max_total_jobs),
+                    max_audio_ms=policy.max_total_decode_ms)
+                plan=plan_retries(_planning_candidate(trigger,audio_ms,step),
+                                  audio_ms,planning)
+                jobs=len(plan.windows)
+                covered_ms=sum(w.duration_ms for w in plan.windows)
+                feasible=plan.full_coverage and bool(jobs)
+                boundary_count=max(0,jobs-1)
+            except ValueError:
+                feasible=False
+        score=round(covered_ms/1000*policy.assumed_native_rtf
+                    +jobs*policy.estimated_startup_s
+                    +boundary_count*policy.boundary_review_penalty_s,3) if feasible else None
+        candidates.append({
+            "strategy":step.name,"ordinal":ordinal,"scope":step.scope,
+            "estimated_jobs":jobs,"estimated_redecode_ms":covered_ms,
+            "estimated_boundaries":boundary_count,
+            "full_coverage_feasible":feasible,
+            "estimated_cost_units_seconds_heuristic":score,
+            "not_measured_wall_time":True,
+        })
+    order=sorted(range(len(candidates)),
+                 key=lambda i:(not candidates[i]["full_coverage_feasible"],
+                               candidates[i]["estimated_cost_units_seconds_heuristic"]
+                               if candidates[i]["full_coverage_feasible"] else float("inf"),
+                               i))
+    if not policy.cost_aware:
+        order=list(range(len(candidates)))
+    return tuple(policy.strategies[i] for i in order),candidates
+
+
 def run_adaptive(
     workspace:Path,
     adapter:NativeAdapter,
@@ -273,6 +348,10 @@ def run_adaptive(
                                      failure_or_timeout=baseline_failed,
                                      policy=policy.detection)
     trigger,eligible_count=_new_span_bounds(baseline_detect,audio_ms,policy)
+    ordered_strategies, cost_estimates=(
+        estimated_strategy_order(trigger,audio_ms,policy)
+        if trigger is not None else ((),[])
+    )
     report={
         "schema":"whispercpp/adaptive-controller-prototype/v1",
         "original_source_sha256":sha256_file(src),
@@ -284,6 +363,15 @@ def run_adaptive(
         "eligible_triggers":eligible_count,
         "selected_trigger":asdict(trigger) if trigger else None,
         "all_regions_processed":eligible_count <= policy.max_regions,
+        "cost_planning":{
+            "enabled":policy.cost_aware,
+            "assumed_native_rtf":policy.assumed_native_rtf,
+            "startup_s":policy.estimated_startup_s,
+            "per_join_review_penalty_s":policy.boundary_review_penalty_s,
+            "estimates":cost_estimates,
+            "ordered_strategies":[s.name for s in ordered_strategies],
+            "not_measured_native_latency":True,
+        },
         "policy_limits":{"max_attempts":policy.max_attempts,
                          "max_total_decode_ms":policy.max_total_decode_ms,
                          "max_total_jobs":policy.max_total_jobs,
@@ -300,25 +388,26 @@ def run_adaptive(
     begin=time.perf_counter()
     best=None
     if trigger is not None:
-        candidate=RepetitionCandidate(trigger.start_ms,trigger.end_ms,
-                                      1,0,trigger.end_ms-trigger.start_ms)
-        for index,step in enumerate(policy.strategies[:policy.max_attempts],1):
+        for index,step in enumerate(ordered_strategies[:policy.max_attempts],1):
             remaining_ms=policy.max_total_decode_ms-report["total_transcribed_audio_ms"]
             remaining_jobs=policy.max_total_jobs-report["native_jobs_executed"]
             attempt={
-                "index":index,"strategy":step.name,
+                "index":index,"strategy":step.name,"scope":step.scope,
                 "parameter_adjustments":dict(step.profile_updates),
                 "windows":[],"status":"NOT_EXECUTED",
             }
             report["attempts"].append(attempt)
-            if remaining_ms<step.window_ms or remaining_jobs<1:
+            window_ms=min(step.window_ms,audio_ms)
+            if remaining_ms<window_ms or remaining_jobs<1:
                 attempt["status"]="SKIPPED_GLOBAL_BUDGET"
                 break
-            rp=RetryPolicy(window_ms=step.window_ms,overlap_ms=step.overlap_ms,
-                lead_ms=step.lead_ms,tail_ms=step.tail_ms,
+            rp=RetryPolicy(window_ms=window_ms,
+                overlap_ms=min(step.overlap_ms,window_ms-1),
+                lead_ms=step.lead_ms if step.scope=="trigger" else 0,
+                tail_ms=step.tail_ms if step.scope=="trigger" else 0,
                 max_jobs=min(step.max_jobs,remaining_jobs),
                 max_audio_ms=remaining_ms)
-            plan=plan_retries(candidate,audio_ms,rp)
+            plan=plan_retries(_planning_candidate(trigger,audio_ms,step),audio_ms,rp)
             attempt["planned_full_coverage"]=plan.full_coverage
             attempt["planned_windows"]=len(plan.windows)
             attempt["planned_audio_ms"]=sum(w.duration_ms for w in plan.windows)
@@ -343,8 +432,11 @@ def run_adaptive(
                 wav=audio_dir/f"w{window.job:03d}.wav"
                 clip_hash=_exact_window(src,wav,window)
                 target=jobs_dir/f"w{window.job:03d}"
+                run_kwargs={"timeout_s":max(1,min(step.timeout_s,int(seconds_remaining)))}
+                if policy.watchdog is not None:
+                    run_kwargs["watchdog"]=policy.watchdog
                 record=runner.run_once(wav,model_name,vad_name,target,profile,
-                                        timeout_s=max(1,min(step.timeout_s,int(seconds_remaining))))
+                                        **run_kwargs)
                 report["total_transcribed_audio_ms"]+=window.duration_ms
                 report["native_jobs_executed"]+=1
                 srtpath=target/"transcript.srt"
@@ -368,6 +460,7 @@ def run_adaptive(
                     "binary_sha256":record.get("hashes",{}).get("binary"),
                     "exit_code":record.get("exit_code"),
                     "native_engine":record.get("engine","external_adapter_unspecified"),
+                    "watchdog":record.get("watchdog"),
                     "native_inference_passed":bool(record.get("inference_passed")),
                     "wall_s":record.get("elapsed_seconds"),
                     "json_quality":json_quality,
