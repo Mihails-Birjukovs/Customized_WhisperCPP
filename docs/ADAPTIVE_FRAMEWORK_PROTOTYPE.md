@@ -44,3 +44,11 @@ The experimental `AdaptivePolicy(cost_aware=True)` ranks explicitly configured s
 Cost-aware scheduling remains **opt-in**. A retry with eliminated repetition but unresolved joins is provisional; a clean-looking transcript can still omit speech. Both options are intended for controlled, non-destructive experiments, not automatic replacement of historical recordings.
 
 Synthetic no-model tests additionally cover progress advancement, startup stalling, idle stalling, hard timeouts, raw-log preservation, cost-ranked fallbacks and incomplete full-source rejection. Run `python -m unittest discover -s tests/adaptive_whisper -v` for the complete portable suite.
+
+## Experimental non-WER coverage and output-consistency diagnostics
+
+`adaptive_whisper/coverage.py` introduces private-file-compatible, backend-neutral sound-energy/SRT coverage screening. It reads mono 16-kHz PCM16 WAV in bounded 100-ms frames, computes RMS activity using pre-registered thresholds, checks whether padded subtitle intervals cover those active frames, and flags long high-energy intervals lacking any nearby caption. A three-threshold sensitivity report helps expose threshold dependence. **Sound energy is not a speech/voice classifier.** Timestamp overlap is not a proof that any word was recognized or retained.
+
+The `compare_machine_hypotheses` function compares two ASR outputs using token-count ratio, token-multiset overlap and optional order similarity, returning only counts/warnings, not verbatim text. It highlights large output changes requiring review even when repetitions disappear. When the baseline itself is pathological, its text cannot be treated as reference truth; the consistency method explicitly disables deletion-style warnings in that case.
+
+These engineering QA tools do **not** calculate WER/CER, infer a transcription ground truth, or certify zero missing speech. Preserve source WAVs, native TXT/SRT/JSON and original machine results. The coverage analysis does not automatically release a provisional recovery.
