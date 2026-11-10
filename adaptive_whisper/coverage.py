@@ -189,6 +189,103 @@ def compare_machine_hypotheses(baseline_srt:str,candidate_srt:str,
     }
 
 
+def region_output_diversity(srt_text:str,start_ms:int,end_ms:int)->dict:
+    """Output-only caption diversity on a *predefined* original-audio region.
+
+    The region MUST be the same when comparing hypotheses. Repetition-free
+    output is not evidence that all speech is present or correctly heard.
+    """
+    import collections
+    import re
+    import unicodedata
+    if start_ms<0 or end_ms<=start_ms:
+        raise ValueError("Invalid original-audio analysis interval")
+    cues=tuple(c for c in parse_srt(srt_text)
+               if c.end_ms>start_ms and c.start_ms<end_ms)
+    keys=[" ".join(unicodedata.normalize("NFKC",c.text).casefold().split())
+          for c in cues]
+    counts=collections.Counter(keys)
+    length=len(keys)
+    max_count=max(counts.values(),default=0)
+    run_start=0
+    longest_run_ms=0
+    longest_run_cues=0
+    for i in range(1,length+1):
+        if i<length and keys[i]==keys[run_start]:
+            continue
+        run_count=i-run_start
+        if run_count>=2:
+            duration=(min(end_ms,cues[i-1].end_ms)
+                      -max(start_ms,cues[run_start].start_ms))
+            if duration>longest_run_ms:
+                longest_run_ms=duration
+                longest_run_cues=run_count
+        run_start=i
+    tokens=sum(len(re.findall(r"\w+",c.text,flags=re.UNICODE))
+               for c in cues)
+    return {
+      "schema":"whispercpp/fixed-interval-output-diversity/v1",
+      "not_truth":True,
+      "source_interval_ms":[start_ms,end_ms],
+      "interval_duration_ms":end_ms-start_ms,
+      "intersecting_cues":length,
+      "token_count":tokens,
+      "unique_normalized_caption_count":len(counts),
+      "unique_caption_fraction":round(len(counts)/length,5) if length else None,
+      "highest_single_caption_fraction":round(max_count/length,5) if length else None,
+      "longest_identical_caption_run_ms":longest_run_ms,
+      "longest_identical_caption_run_cues":longest_run_cues,
+      "all_speech_retained_not_verified":True,
+    }
+
+
+def region_energy_coverage(audio:Path,srt_text:str,start_ms:int,end_ms:int,
+                           policy:CoveragePolicy=CoveragePolicy())->dict:
+    """Compare an identical, fixed original-audio ROI across ASR variants.
+
+    100-ms frame discretization discards partial ROI-edge bins; it does not
+    certify that retained captions contain the correct words.
+    """
+    mask,duration=energy_mask(audio,policy)
+    if start_ms<0 or end_ms>duration or start_ms>=end_ms:
+        raise ValueError("Invalid original source ROI")
+    first=math.ceil(start_ms/policy.frame_ms)
+    last=end_ms//policy.frame_ms
+    if first>=last:
+        raise ValueError("Source ROI shorter than complete analysis frame")
+    cues=parse_srt(srt_text)
+    selected=mask[first:last]
+    covered=[False]*len(selected)
+    for c in cues:
+        if c.end_ms<c.start_ms:
+            continue
+        a=max(first,(c.start_ms-policy.cue_pad_ms)//policy.frame_ms)
+        b=min(last,math.ceil((c.end_ms+policy.cue_pad_ms)/policy.frame_ms))
+        if b>a:
+            covered[a-first:b-first]=[True]*(b-a)
+    active=sum(selected)
+    intersection=sum(v and covered[i] for i,v in enumerate(selected))
+    uncaptioned=[v and not covered[i] for i,v in enumerate(selected)]
+    intervals=[(first*policy.frame_ms+a,
+                first*policy.frame_ms+b)
+               for a,b in _intervals(uncaptioned,policy.frame_ms)
+               if b-a>=policy.long_uncovered_ms]
+    return {
+       "schema":"whispercpp/fixed-interval-energy-coverage-proxy/v1",
+       "not_ground_truth":True,
+       "source_interval_ms":[start_ms,end_ms],
+       "frame_aligned_evaluated_ms":[first*policy.frame_ms,last*policy.frame_ms],
+       "frame_edge_time_uncertainty_ms":policy.frame_ms,
+       "threshold_dbfs":policy.energy_dbfs,
+       "high_energy_ms":active*policy.frame_ms,
+       "high_energy_caption_covered_ms":intersection*policy.frame_ms,
+       "high_energy_caption_coverage_fraction":round(intersection/active,5) if active else None,
+       "uncaptioned_high_energy_ms":sum(uncaptioned)*policy.frame_ms,
+       "uncaptioned_intervals_ms":intervals,
+       "not_proof_of_speech_retention":True,
+    }
+
+
 def multi_threshold_report(audio:Path,srt_text:str,
                            thresholds:tuple[float,...]=(-48.,-42.,-36.))->dict:
     return {

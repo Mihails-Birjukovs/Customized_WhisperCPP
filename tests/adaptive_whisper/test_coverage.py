@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import wave
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
-from adaptive_whisper.coverage import CoveragePolicy,coverage_report,multi_threshold_report,compare_machine_hypotheses
+from adaptive_whisper.coverage import CoveragePolicy,coverage_report,multi_threshold_report,compare_machine_hypotheses,region_output_diversity,region_energy_coverage
 from adaptive_whisper.stitch import fmt
 
 def srt(bounds):
@@ -83,6 +83,42 @@ class EnergyCoverageTests(unittest.TestCase):
         m=compare_machine_hypotheses(baseline,candidate,baseline_pathological=True)
         self.assertEqual(m["review_warnings"],[])
         self.assertTrue(m["word_error_rate_unavailable"])
+
+    def test_fixed_region_identical_run_vs_varied_output(self):
+        old=srt([(0,1000),(1000,2000),(2000,3000)])
+        # Identical captions are expected because the helper uses one text.
+        a=region_output_diversity(old,0,3000)
+        self.assertEqual(a["intersecting_cues"],3)
+        self.assertEqual(a["unique_normalized_caption_count"],1)
+        self.assertEqual(a["longest_identical_caption_run_ms"],3000)
+        self.assertEqual(a["longest_identical_caption_run_cues"],3)
+        new=("1\n00:00:00,000 --> 00:00:01,000\nFirst text.\n\n"
+             "2\n00:00:01,000 --> 00:00:02,000\nSecond text.\n\n"
+             "3\n00:00:02,000 --> 00:00:03,000\nThird text.\n\n")
+        b=region_output_diversity(new,0,3000)
+        self.assertEqual(b["unique_normalized_caption_count"],3)
+        self.assertEqual(b["longest_identical_caption_run_ms"],0)
+        self.assertTrue(b["not_truth"])
+
+    def test_fixed_region_empty_and_invalid_intervals(self):
+        a=region_output_diversity(srt([(0,1000)]),5000,8000)
+        self.assertEqual(a["intersecting_cues"],0)
+        self.assertIsNone(a["unique_caption_fraction"])
+        with self.assertRaises(ValueError):
+            region_output_diversity(srt([(0,1000)]),2000,1000)
+
+    def test_region_sound_energy_coverage_is_localized(self):
+        roi=region_energy_coverage(self.path,srt([(0,500)]),0,1000,
+             CoveragePolicy(cue_pad_ms=0,long_uncovered_ms=200))
+        self.assertEqual(roi["high_energy_ms"],1000)
+        self.assertEqual(roi["high_energy_caption_coverage_fraction"],0.5)
+        self.assertEqual(roi["uncaptioned_high_energy_ms"],500)
+        self.assertEqual(roi["uncaptioned_intervals_ms"],[(500,1000)])
+        self.assertTrue(roi["not_proof_of_speech_retention"])
+
+    def test_region_sound_energy_rejects_oob(self):
+        with self.assertRaises(ValueError):
+            region_energy_coverage(self.path,"",1000,2500)
 
     def test_rejects_nonstandard_sample_format(self):
         nonmono=Path(self.tmp.name)/"stereo.wav"

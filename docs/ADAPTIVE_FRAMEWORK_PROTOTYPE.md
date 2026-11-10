@@ -54,3 +54,9 @@ The `compare_machine_hypotheses` function compares two ASR outputs using token-c
 These engineering QA tools do **not** calculate WER/CER, infer a transcription ground truth, or certify zero missing speech. Preserve source WAVs, native TXT/SRT/JSON and original machine results. The coverage analysis does not automatically release a provisional recovery.
 
 **Controller integration:** For `scope="full_source"` provisional recoveries, the controller now records the audio-energy coverage proxy and, when a baseline SRT exists, a machine-to-machine output consistency report. Both are metadata-only engineering warnings; neither is a release gate or a claim that all spoken words survived the intervention. For localized source windows, no misleading whole-recording coverage score is emitted.
+
+### Fixed-interval recovery comparison
+
+`region_output_diversity` and `region_energy_coverage` compare baseline and retry on the **same predefined original-audio time interval**, reporting text/caption diversity, longest exact repeated-caption run, and original PCM energy covered by subtitle timestamps at an explicit dBFS threshold. Region endpoints are frame-discretized with their uncertainty recorded. The functions never expose transcript words in the report and never confuse high sound energy with speech truth.
+
+**Important scientific limitation:** A recovered transcript may have high caption/energy overlap while omitting or misrecognizing words. Region diversity and energy coverage are engineering screening proxies, not a replacement for selective listening where speech loss is ambiguous. The absence of a long identical-caption run is necessary but not sufficient for final acoustic acceptance.
