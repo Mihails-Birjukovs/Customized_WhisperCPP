@@ -80,6 +80,8 @@ class SchedulingTests(unittest.TestCase):
             self.assertEqual(result["attempts"][1]["planned_audio_ms"],60000)
             self.assertEqual(result["attempts"][1]["status"],"PATHOLOGY_CLEARED_STRUCTURAL")
             self.assertEqual(result["selected_provisional_attempt"],2)
+            self.assertTrue(result["attempts"][1]["energy_coverage_proxy"]["not_ground_truth"])
+            self.assertTrue(result["attempts"][1]["machine_hypothesis_consistency"]["baseline_pathological"])
             self.assertFalse(result["human_audio_accuracy_verified"])
             self.assertTrue(old.is_file())
 

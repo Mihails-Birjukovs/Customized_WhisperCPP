@@ -22,6 +22,7 @@ from .recovery import RetryPolicy, RetryWindow, plan_retries
 from .stitch import merge_windows
 from .native_json import write_canonical_separate, NativeJsonIntegrityError
 from .watchdog import WatchdogPolicy
+from .coverage import coverage_report,compare_machine_hypotheses
 
 
 @dataclass(frozen=True)
@@ -500,6 +501,13 @@ def run_adaptive(
             attempt["join_conflicts"]=len(conflicted)
             attempt["joined_anomalies"]=[asdict(t) for t in joined_triggers]
             attempt["mechanical_join_status"]=joined.status
+            if step.scope=="full_source":
+                # Source-energy/timing and machine agreement are *diagnostics*,
+                # never independent speech or linguistic ground truth.
+                attempt["energy_coverage_proxy"]=coverage_report(src,joined.text_srt)
+                if text is not None:
+                    attempt["machine_hypothesis_consistency"]=compare_machine_hypotheses(
+                        text,joined.text_srt,baseline_pathological=bool(baseline_detect))
             attempt["status"]=("PATHOLOGY_REMAINS"
                                if joined_triggers else
                                "PATHOLOGY_CLEARED_JOIN_REVIEW" if conflicted
