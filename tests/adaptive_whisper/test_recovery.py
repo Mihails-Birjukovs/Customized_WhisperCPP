@@ -39,6 +39,26 @@ class RetryPlanningTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             w.to_global(w.duration_ms+1)
 
+    def test_nominal_window_larger_than_budget_but_real_short_span_fits(self):
+        policy = RetryPolicy(
+            window_ms=30000, overlap_ms=0, lead_ms=3000,
+            tail_ms=3000, max_jobs=1, max_audio_ms=22040,
+        )
+        plan = plan_retries(candidate(1287360, 1291390), 1291390, policy)
+        self.assertTrue(plan.full_coverage)
+        self.assertEqual(len(plan.windows), 1)
+        self.assertEqual(plan.windows[0].duration_ms, 7030)
+        self.assertLessEqual(sum(w.duration_ms for w in plan.windows), 22040)
+
+    def test_nominal_window_larger_than_budget_but_real_long_span_stays_partial(self):
+        policy = RetryPolicy(
+            window_ms=30000, overlap_ms=0, lead_ms=3000,
+            tail_ms=3000, max_jobs=1, max_audio_ms=12000,
+        )
+        plan = plan_retries(candidate(15000, 31000), 60000, policy)
+        self.assertFalse(plan.full_coverage)
+        self.assertLessEqual(sum(w.duration_ms for w in plan.windows), 12000)
+
     def test_rejects_bad_policy_and_out_of_audio_candidate(self):
         with self.assertRaises(ValueError):
             RetryPolicy(window_ms=5000,overlap_ms=5000)

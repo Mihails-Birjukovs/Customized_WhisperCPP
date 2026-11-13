@@ -156,6 +156,26 @@ class ControllerUnitTests(unittest.TestCase):
         self.assertTrue((self.ws/"new_run/attempt_02_temperature_retry/jobs/w001/"
                          "transcript.derived.lossless-adaptive-v1.json").is_file())
 
+    def test_nominal_window_gt_budget_succeeds_when_actual_span_is_short(self):
+        # Regression: under a *shared* multiregion budget the first region
+        # can leave 22.04 seconds. A strategy with a nominal 30-second cap
+        # must still decode an actual 7.03-second region, not skip it.
+        phrase = "artificial abnormal repeated words "
+        self.baseline.write_text(synthetic_cues([
+            (30000, 35000, phrase * 4),
+        ]), encoding="utf-8")
+        fake = FakeAdapter()
+        policy = AdaptivePolicy(
+            strategies=(RetryStrategy("nominal30_actual7",30000,0,1000,1000,1),),
+            max_total_decode_ms=15000,max_total_jobs=1,max_attempts=1,
+        )
+        report = self.invoke(fake,policy,name="short_fits")
+        self.assertTrue(report["status"].startswith("PATHOLOGY_CLEARED"))
+        self.assertEqual(report["native_jobs_executed"], 1)
+        self.assertEqual(report["total_transcribed_audio_ms"], 7000)
+        self.assertTrue(report["cost_planning"]["estimates"][0]["full_coverage_feasible"])
+        self.assertEqual(len(fake.calls),1)
+
     def test_global_budget_blocks_partial_coverage_and_does_not_mislabel_success(self):
         fake=FakeAdapter()
         policy=AdaptivePolicy(strategies=(self.strategy("reset"),),

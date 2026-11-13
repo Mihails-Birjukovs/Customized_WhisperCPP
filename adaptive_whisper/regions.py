@@ -15,7 +15,7 @@ from typing import Any
 
 from .backend import DecodeProfile, ensure_inside, sha256_file
 from .controller import (
-    AdaptivePolicy, NativeAdapter, Trigger, _source_pcm16,
+    AdaptivePolicy, NativeAdapter, RetryStrategy, Trigger, _source_pcm16,
     detect_pathologies, run_adaptive,
 )
 from .multi_timeline import (
@@ -72,6 +72,7 @@ def run_adaptive_regions(
     adapters_by_strategy: dict[str, NativeAdapter] | None = None,
     *,
     group_guard_ms: int = 0,
+    strategies_by_signal: dict[str, tuple[RetryStrategy, ...]] | None = None,
 ) -> dict[str, Any]:
     """Process up to max_regions with one shared decode/job/wall budget.
 
@@ -84,6 +85,15 @@ def run_adaptive_regions(
     """
     if any(step.scope != "trigger" for step in policy.strategies):
         raise ValueError("Multi-region mode requires trigger-scoped strategies")
+    optional_strategies = strategies_by_signal or {}
+    if not isinstance(optional_strategies, dict):
+        raise ValueError("Signal-specific strategies must be a mapping")
+    for signal, steps in optional_strategies.items():
+        if (not isinstance(signal, str) or not signal or
+                not isinstance(steps, tuple) or not steps or
+                any(not isinstance(s, RetryStrategy) or s.scope != "trigger"
+                    for s in steps)):
+            raise ValueError("Signal-specific strategies must be nonempty local retry tuples")
     ws = workspace.resolve(strict=True)
     src = ensure_inside(source_audio, ws)
     base = ensure_inside(baseline_srt, ws) if baseline_srt is not None else None
@@ -99,6 +109,16 @@ def run_adaptive_regions(
                                   policy=policy.detection)
     regions = plan_regions(detected, audio_ms, guard_ms=group_guard_ms,
                            allow_unverified=policy.allow_unverified_no_output_trigger)
+    # Reject unknown mapping keys and conflicting multi-trigger signal groups
+    # BEFORE creating any output. Never silently route a region using a
+    # potentially unintended strategy policy.
+    available_signals = {member.signal for region in regions for member in region.members}
+    if any(signal not in available_signals for signal in optional_strategies):
+        raise ValueError("Signal strategy configured for no detected region")
+    for region in regions:
+        signals = {member.signal for member in region.members}
+        if len(signals) > 1 and signals.intersection(optional_strategies):
+            raise ValueError("Cannot select one policy for mixed-signal grouped region")
     output_parent.mkdir(exist_ok=False)
     started = time.perf_counter()
     consumed_ms = 0
@@ -121,9 +141,16 @@ def run_adaptive_regions(
         if remaining_ms < 1000 or remaining_jobs < 1 or remaining_wall < 1:
             row["status"] = "DEFERRED_GLOBAL_BUDGET"
             continue
-        # Single-region artifacts and strategy loops remain independent.
+        # Strategy selection is explicit and reported per region. Overrides
+        # change the *prioritized candidate list*, never the shared budgets.
+        signals = {member.signal for member in region.members}
+        signal = next(iter(signals)) if len(signals) == 1 else None
+        policy_key = signal if signal in optional_strategies else None
+        local_steps = optional_strategies[policy_key] if policy_key is not None else policy.strategies
+        row["strategy_policy_source"] = policy_key or "default"
+        row["planned_strategy_names"] = [step.name for step in local_steps]
         local_policy = replace(
-            policy, max_total_decode_ms=remaining_ms,
+            policy, strategies=local_steps, max_total_decode_ms=remaining_ms,
             max_total_jobs=remaining_jobs, max_wall_s=remaining_wall,
             max_regions=1, compose_full_timeline_preview=False,
         )
@@ -258,6 +285,8 @@ def run_adaptive_regions(
         "regions_deferred": deferred,
         "max_regions": policy.max_regions,
         "group_guard_ms": group_guard_ms,
+        "signal_specific_strategy_override_keys": sorted(optional_strategies),
+        "signal_specific_strategy_selection_is_opt_in": bool(optional_strategies),
         "shared_limits": {
             "decode_ms": policy.max_total_decode_ms,
             "jobs": policy.max_total_jobs, "wall_s": policy.max_wall_s,

@@ -285,22 +285,23 @@ def estimated_strategy_order(trigger:Trigger,audio_ms:int,
         jobs=0
         covered_ms=0
         boundary_count=0
-        if window_ms<=policy.max_total_decode_ms:
-            try:
-                planning=RetryPolicy(
-                    window_ms=window_ms,overlap_ms=min(step.overlap_ms,window_ms-1),
-                    lead_ms=step.lead_ms if step.scope=="trigger" else 0,
-                    tail_ms=step.tail_ms if step.scope=="trigger" else 0,
-                    max_jobs=min(step.max_jobs,policy.max_total_jobs),
-                    max_audio_ms=policy.max_total_decode_ms)
-                plan=plan_retries(_planning_candidate(trigger,audio_ms,step),
-                                  audio_ms,planning)
-                jobs=len(plan.windows)
-                covered_ms=sum(w.duration_ms for w in plan.windows)
-                feasible=plan.full_coverage and bool(jobs)
-                boundary_count=max(0,jobs-1)
-            except ValueError:
-                feasible=False
+        # Do not reject on the nominal maximum: the actual source span
+        # can be shorter. The retry planner enforces the shared audio budget.
+        try:
+            planning=RetryPolicy(
+                window_ms=window_ms,overlap_ms=min(step.overlap_ms,window_ms-1),
+                lead_ms=step.lead_ms if step.scope=="trigger" else 0,
+                tail_ms=step.tail_ms if step.scope=="trigger" else 0,
+                max_jobs=min(step.max_jobs,policy.max_total_jobs),
+                max_audio_ms=policy.max_total_decode_ms)
+            plan=plan_retries(_planning_candidate(trigger,audio_ms,step),
+                              audio_ms,planning)
+            jobs=len(plan.windows)
+            covered_ms=sum(w.duration_ms for w in plan.windows)
+            feasible=plan.full_coverage and bool(jobs)
+            boundary_count=max(0,jobs-1)
+        except ValueError:
+            feasible=False
         score=round(covered_ms/1000*policy.assumed_native_rtf
                     +jobs*policy.estimated_startup_s
                     +boundary_count*policy.boundary_review_penalty_s,3) if feasible else None
@@ -425,7 +426,9 @@ def run_adaptive(
             }
             report["attempts"].append(attempt)
             window_ms=min(step.window_ms,audio_ms)
-            if remaining_ms<window_ms or remaining_jobs<1:
+            # Compare remaining budget with the actual retry plan,
+            # not the strategy's nominal maximum window length.
+            if remaining_ms<1000 or remaining_jobs<1:
                 attempt["status"]="SKIPPED_GLOBAL_BUDGET"
                 break
             rp=RetryPolicy(window_ms=window_ms,

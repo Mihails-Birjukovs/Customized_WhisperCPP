@@ -207,3 +207,89 @@ staged in the trusted workstation workspace. Do not claim native
 natural-recording acceptance until that happens. The audio cannot be
 downloaded anonymously from the Drive link; no credentials were
 exposed or used outside the connected app.
+
+
+### Stage 10 signal-specific bounded recovery and actual-window budget correction
+
+A natural March 3, 2026 meeting segment has two distinct output-level detector
+candidates from the *same original*, source-contiguous 21:31.390 recording
+prefix. The first is a within-caption repeated n-gram (~7:31–7:39) and
+the second is consecutive repeated captions (~21:27–21:31). The original
+WAV, its SRT, the exact source-clock PCM16 prefix and all first-run outputs
+are hash-preserved outside GitHub.
+
+Initial generic short-context recovery structurally cleared the second
+region but not the first. A separate predeclared extended-context
+investigation found that a **30-second lead and 30-second tail** removed
+the first region's trigger (15 seconds on either side did not). The two
+successful hypotheses can be combined into a private provisional full-clock
+SRT with no residual repetition triggers but **ten boundary hazards**,
+including overlapping baseline/recovered cues and a high-energy 3.41-s
+caption gap. This cross-run success is *not* success of the first single
+controller invocation and does not imply human-word accuracy.
+
+To support explicit heterogeneous treatment, `run_adaptive_regions`
+now has an **opt-in** `strategies_by_signal` argument mapping an exact
+`Trigger.signal` to a nonempty tuple of local `RetryStrategy` values.
+The same shared decode-ms, native-job and wall-time limits still apply
+across all regions. The selected policy key and strategy names are
+audited per region. Unsupported, mistyped or mixed-signal policies
+fail closed **before** writing outputs. There is no change to the
+default strategy list or automatic transcript release behavior.
+
+**Discovered budget bug and correction.** In the first signal-aware
+single-invocation natural test, Region 1 cleared after 67,960 ms of
+redecode, leaving 22,040 ms of a 90,000-ms shared budget. The second
+region needed only 7,030 ms, but the code rejected its *nominal*
+30,000-ms maximum window. Two incorrect gates caused this:
+`RetryPolicy.__post_init__` demanded `max_audio_ms >= window_ms`,
+and both the pre-run heuristic and execution loop compared available
+budget against nominal `window_ms`, not the actual source-window
+plan. The corrected planner allows a longer nominal maximum but
+still caps the **sum of actual retry-window durations** by the strict
+remaining budget. Requests that genuinely exceed budget remain
+incomplete and cannot be emitted as finished transcript regions.
+Regression tests cover fitting and non-fitting windows, actual
+native dispatch, shared-budget preservation and the independent
+signal-specific routing path.
+
+These signal-context choices are **case-derived exploratory strategies**;
+they must not be silently promoted to global defaults or represented as
+held-out scientific validation. The initial failed run, extended-context
+run, composed private preview and first signal-aware budget-failure run
+are preserved as independent, hash-gated evidence. Real natural-case
+word error, speaker accuracy and splice correctness require a fresh
+single-reviewer audio-first reference, not SRT-only diagnostics.
+
+
+**Single-invocation natural CUDA acceptance after correction (2026-11-13):**
+The corrected opt-in signal policy was tested again from scratch in a fresh
+output directory. One `run_adaptive_regions` call on the exact March 3
+21:31.390 PCM prefix used two native CUDA jobs:
+
+- 67,960 ms for the within-caption candidate, with 30-s audio lead/tail;
+- 7,030 ms for the consecutive-caption candidate, with 3-s lead/tail.
+
+This consumed 74,990 ms of an explicitly shared 90,000-ms decode budget
+with positive native CUDA backend selection for both calls. The resulting
+full-clock provisional transcript has 234 cues, SHA-256
+`5af5defa9fc16d835783d8e1d5734794683d422b333badb9f9bfee535b6e3e2a`,
+**exactly identical** to the previously verified two-independent-runs
+composite. Both regions structurally cleared without residual detector
+triggers, but the combined output carries **ten boundary review hazards**.
+The controller reports `ALL_REGIONS_FULL_TIMELINE_REVIEW_REQUIRED`
+and refuses automatic transcript release.
+
+The private hash-gated acceptance audit and audio-first single-reviewer
+packet reside under the workstation `results/CUDA/` tree; *neither the
+source audio nor the human reviewer annotations are in GitHub*. This
+acceptance establishes actual multi-region native execution on one
+original meeting, not human word error accuracy or an independent
+held-out evaluation. The signal-specific policy was calibrated with
+this same case, so generalization requires other recordings and
+acoustic human verification. No default strategy was changed.
+
+An exact shared-budget synthetic regression exercises a 36,000-ms cap
+where Region 1 consumes 22,000 ms, leaving 14,000 ms for Region 2:
+the second nominal 20,000-ms window must still execute its actual
+13,000-ms plan. Both 3.10 and 3.14 synthetic test suites pass.

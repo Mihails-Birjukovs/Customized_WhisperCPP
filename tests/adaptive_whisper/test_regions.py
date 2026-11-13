@@ -95,7 +95,7 @@ class MultiRegionTests(unittest.TestCase):
             self.assertFalse((folder / "provisional_full_timeline.srt").exists())
 
     def test_shared_decode_budget_defers_second_region(self):
-        report = self.invoke(self.policy(max_total_decode_ms=28000), "budgeted")
+        report = self.invoke(self.policy(max_total_decode_ms=24000), "budgeted")
         self.assertEqual(report["regions_detected"], 2)
         self.assertEqual(report["regions_structurally_cleared"], 1)
         self.assertEqual(report["status"], "PARTIAL_REGIONS_UNRESOLVED")
@@ -104,7 +104,7 @@ class MultiRegionTests(unittest.TestCase):
         self.assertFalse(report["full_timeline_splice_performed"])
         self.assertEqual(report["regions"][1]["status"],
                          "NO_RETRY_BUDGET_FOR_COMPLETE_COVERAGE")
-        self.assertLessEqual(report["consumed_decode_ms"], 28000)
+        self.assertLessEqual(report["consumed_decode_ms"], 24000)
         self.assertEqual(len(self.adapter.calls), 1)
 
     def test_max_regions_defers_without_falsely_claiming_all_recovered(self):
@@ -170,6 +170,86 @@ class MultiRegionTests(unittest.TestCase):
         self.assertEqual(report["full_timeline"]["overlap_ms"], [15500, 16000])
         self.assertFalse(report["full_timeline_splice_performed"])
         self.assertFalse((self.ws / "overlapping/provisional_multi_full_timeline.srt").exists())
+
+    def test_signal_specific_strategy_selection_preserves_shared_budget(self):
+        # Two different detector signal families, on one natural-like
+        # source timeline. Explicitly choose different window contexts.
+        first = "An artificial internal repeated phrase. " * 3
+        second = "Another distinct consecutive synthetic error phrase."
+        self.baseline.write_text(srt([
+            (5000, 14000, first),
+            (35000, 38000, second),
+            (38000, 41000, second),
+            (41000, 44000, second),
+        ]), encoding="utf-8")
+        options = {
+            "repeated_ngram_within_single_cue": (
+                RetryStrategy("inside_cue_extended", 30000, 0, 8000, 8000, 1),
+            ),
+            "consecutive_normalized_cues": (
+                RetryStrategy("consecutive_short", 20000, 0, 2000, 2000, 1),
+            ),
+        }
+        # First uses 22 s, leaving 14 s of a 36-s global cap.
+        # Second has a nominal 20-s maximum but needs only 13 s.
+        # This must run rather than falsely fail the budget check.
+        report = self.invoke(self.policy(max_total_decode_ms=36000),
+                             name="signal_contexts",
+                             strategies_by_signal=options)
+        self.assertEqual(report["consumed_decode_ms"], 35000)
+        self.assertEqual([r["redecoded_audio_ms"] for r in report["regions"]],
+                         [22000,13000])
+        self.assertEqual(report["regions_detected"], 2)
+        self.assertEqual(report["regions_structurally_cleared"], 2)
+        self.assertEqual(report["consumed_native_jobs"], 2)
+        self.assertLessEqual(report["consumed_decode_ms"], 36000)
+        self.assertTrue(report["signal_specific_strategy_selection_is_opt_in"])
+        self.assertEqual(
+            report["signal_specific_strategy_override_keys"],
+            sorted(options),
+        )
+        self.assertEqual(
+            [r["strategy_policy_source"] for r in report["regions"]],
+            ["repeated_ngram_within_single_cue", "consecutive_normalized_cues"],
+        )
+        self.assertEqual(
+            [r["planned_strategy_names"][0] for r in report["regions"]],
+            ["inside_cue_extended", "consecutive_short"],
+        )
+        self.assertFalse(report["auto_release_authorized"])
+
+    def test_unmatched_signal_policy_key_fails_before_creating_output(self):
+        mapping = {"accidental_typo": (
+            RetryStrategy("unused", 30000, 0, 0, 0, 1),
+        )}
+        with self.assertRaisesRegex(ValueError, "no detected region"):
+            self.invoke(name="invalid_key", strategies_by_signal=mapping)
+        self.assertFalse((self.ws / "invalid_key").exists())
+        self.assertFalse(self.adapter.calls)
+
+    def test_full_source_signal_strategy_is_rejected_before_output(self):
+        mapping = {"consecutive_normalized_cues": (
+            RetryStrategy("unsafe_scope", 60000, 0, 0, 0, 1, scope="full_source"),
+        )}
+        with self.assertRaisesRegex(ValueError, "nonempty local retry"):
+            self.invoke(name="unsafe_override", strategies_by_signal=mapping)
+        self.assertFalse((self.ws / "unsafe_override").exists())
+
+    def test_mixed_signal_group_rejects_ambiguous_strategy_override(self):
+        # A cue itself repeats three times and is also repeated across
+        # three separate captions, creating two different signal families.
+        phrase = "A nested artificial repetitive phrase. " * 3
+        self.baseline.write_text(srt([
+            (5000, 8000, phrase),
+            (8000, 11000, phrase),
+            (11000, 14000, phrase),
+        ]), encoding="utf-8")
+        mapping = {"repeated_ngram_within_single_cue": (
+            RetryStrategy("ambiguous", 30000, 0, 1000, 1000, 1),
+        )}
+        with self.assertRaisesRegex(ValueError, "mixed-signal"):
+            self.invoke(name="mixed_signal", strategies_by_signal=mapping)
+        self.assertFalse((self.ws / "mixed_signal").exists())
 
     def test_collision_is_refused(self):
         self.invoke()
