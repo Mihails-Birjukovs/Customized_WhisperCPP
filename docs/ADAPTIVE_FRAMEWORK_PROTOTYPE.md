@@ -161,3 +161,49 @@ The private replay script, input locations, private WAV/SRT files and
 machine-readable audit remain in the workstation sandbox and are not committed
 to GitHub. A future real multi-anomaly native run and blinded boundary
 listening must precede any claim of full-clock speech correctness.
+
+
+## Stage 10: natural-recording, exact-caption-boundary fixture gate
+
+`adaptive_whisper/natural_gate.py` adds a conservative preflight and
+non-destructive fixture maker for natural recordings. It specifically avoids
+the Stage 9 negative-control problem where cutting an audio excerpt through
+a historical caption produced misleading uncaptioned energy.
+
+`plan_natural_prefix(source_srt_bytes, prefix_end_ms, expected_regions_ms)`
+first verifies that the source SRT is parseable, the requested cut is
+**exactly** at the last retained cue's end, no existing cue crosses the
+cut, and the current detector returns **exactly** the explicitly expected,
+independently grouped anomaly intervals. The private source SRT byte
+prefix is extracted at a validated original SRT cue-header boundary,
+without changing text, cue numbering, punctuation, Unicode or CRLF.
+Unsupported/unmatched caption formatting fails closed.
+
+`prepare_natural_prefix(workspace, original_wav=..., original_srt=...,
+destination=..., prefix_end_ms=..., expected_regions_ms=...)` then checks
+that the source WAV is *actually present* and is 16-kHz mono PCM16
+with more audio than the chosen prefix. It copies exact original PCM
+samples in bounded blocks to a **new** isolated WAV, writes the exact
+historical source SRT prefix and a hash/provenance ledger. It refuses to
+overwrite outputs or modify either original, and rechecks input hashes
+after preparing the derived data.
+
+The original SRT (historical ASR output) is **not human word truth**.
+Passing this gate proves only reproducibility and exact source-time
+ownership, not that two detector candidates are true acoustic errors.
+The subsequent `run_adaptive_regions` native CUDA/Vulkan/CPU run,
+boundary listening and independent accuracy testing remain separate
+acceptance stages. The synthetic tests deliberately cover source
+cue clipping, unexpected detector regions, byte-exact CRLF roundtrip,
+WAV layout/length rejection, preservation of both input hashes,
+and overwrite protection.
+
+The March 3 natural-meeting candidate was preflighted privately,
+with 218 exact historical cues in a 1,291,390-ms prefix and detector
+intervals [451,350,459,310] and [1,287,360,1,291,390] ms.
+No private source WAV/SRT contents are included in GitHub, and this
+example is **SRT-only** until its original 123,664,428-byte WAV can be
+staged in the trusted workstation workspace. Do not claim native
+natural-recording acceptance until that happens. The audio cannot be
+downloaded anonymously from the Drive link; no credentials were
+exposed or used outside the connected app.
