@@ -24,8 +24,11 @@ class RetryPolicy:
             raise ValueError("Overlap must be nonnegative and less than window")
         if self.lead_ms < 0 or self.tail_ms < 0 or self.max_jobs < 1:
             raise ValueError("Invalid policy")
-        if self.max_audio_ms < self.window_ms:
-            raise ValueError("Audio budget smaller than one full window")
+        # A nominal maximum window may exceed the remaining global budget.
+        # The actual requested source span can still fit completely.
+        # plan_retries enforces max_audio_ms on all emitted jobs.
+        if self.max_audio_ms < 1000:
+            raise ValueError("Audio budget must permit at least one second")
 
 
 @dataclass(frozen=True)
