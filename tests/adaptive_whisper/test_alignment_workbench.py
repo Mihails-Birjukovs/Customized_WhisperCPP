@@ -77,6 +77,22 @@ class OfflineAlignmentWorkbenchTests(unittest.TestCase):
         self.assertEqual(blob["review"]["words"][1]["word_start_ms"],None)
         self.assertEqual(blob["review"]["words"][1]["human_timing_verified"],False)
 
+    def test_playhead_uses_animation_frames_and_supports_fine_scrubbing(self):
+        self.build()
+        page=self.html.read_text(encoding="utf-8")
+        self.assertIn("requestAnimationFrame(animationTick)",page)
+        self.assertIn('audio.addEventListener("play",beginAnimation)',page)
+        self.assertIn('audio.addEventListener("pause",stopAnimation)',page)
+        self.assertIn('audio.addEventListener("seeked",refreshPlayhead)',page)
+        self.assertIn('id="back10"',page)
+        self.assertIn('id="forward10"',page)
+        self.assertIn('id="speed"',page)
+        self.assertIn('value="0.5"',page)
+        self.assertIn('audio.currentTime+ms/1000',page)
+        self.assertNotIn('audio.addEventListener("timeupdate",()=>{\n document.getElementById("time")',page)
+        self.assertIn("human_timing_verified",page)
+        self.assertFalse(self.evidence["words"][0]["human_timing_verified"])
+
     def test_non_destructive_and_no_overwrites(self):
         a=sha256(self.wav);b=sha256(self.review)
         self.build()

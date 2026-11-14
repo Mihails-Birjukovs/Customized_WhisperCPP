@@ -148,12 +148,17 @@ fully heard just because its spelling is known. Export does not authorize releas
 <button id="begin" class="primary">Set selected onset [</button>
 <button id="finish" class="primary">Set selected end ]</button>
 <button id="play">Replay selected word</button>
+<button id="back10" title="Move playhead 10 ms earlier">−10 ms</button>
+<button id="forward10" title="Move playhead 10 ms later">+10 ms</button>
+<label>Speed <select id="speed" aria-label="Audio playback speed"><option value="1" selected>1×</option><option value="0.75">0.75×</option><option value="0.5">0.5×</option><option value="0.25">0.25×</option></select></label>
 <button id="next">Next word</button>
 <button id="clear">Clear times</button>
 </div>
 <p class="small">Click the waveform to seek, use audio playback to hear each boundary.
-The [ and ] keys mark onset/end when focus is not in an input.
-Every word needs a separate explicit verification checkbox.</p>
+The red playhead updates on every browser animation frame during playback
+rather than at coarse audio timeupdate events. Use slower speed or the ±10 ms
+buttons for fine placement. The [ and ] keys mark onset/end when focus is not
+in an input. Every word needs explicit listening verification.</p>
 </div>
 <div class="panel"><h2>Frozen human reference</h2>
 <div class="wordrow small"><strong>#</strong><strong class="wordname">Human word</strong><strong>Start ms</strong><strong>End ms</strong><strong>Human verified?</strong></div>
@@ -260,24 +265,70 @@ document.getElementById("clear").onclick=()=>{
  words[selected].word_start_ms=null;words[selected].word_end_ms=null;
  words[selected].human_timing_verified=false;refresh(selected);draw()
 };
+let wordReplayEndSeconds=null;
 document.getElementById("play").onclick=()=>{
  const w=words[selected];
  if(!valid(w.word_start_ms)||!valid(w.word_end_ms)){alert("Set both times first");return}
  audio.currentTime=(w.word_start_ms-start)/1000;
- const stop=()=>{
-  if(audio.currentTime>=(w.word_end_ms-start)/1000){audio.pause();audio.removeEventListener("timeupdate",stop)}
- };
- audio.addEventListener("timeupdate",stop);audio.play().catch(()=>{});
+ wordReplayEndSeconds=(w.word_end_ms-start)/1000;
+ audio.play().catch(()=>{wordReplayEndSeconds=null});
 };
+document.getElementById("speed").addEventListener("change",ev=>{
+ audio.playbackRate=Number(ev.target.value);
+});
+function nudge(ms){
+ const next=Math.max(0,Math.min(duration/1000,audio.currentTime+ms/1000));
+ audio.currentTime=next;
+ refreshPlayhead();
+}
+document.getElementById("back10").onclick=()=>nudge(-10);
+document.getElementById("forward10").onclick=()=>nudge(10);
 document.addEventListener("keydown",ev=>{
  if(["INPUT","TEXTAREA","BUTTON"].includes(document.activeElement.tagName))return;
  if(ev.key==="["){settime("word_start_ms",clock());ev.preventDefault()}
  if(ev.key==="]"){settime("word_end_ms",clock());ev.preventDefault()}
 });
+// timeupdate fires only a few times per second; a continuous animation
+// frame loop draws directly from the media playback clock (~60 Hz on a
+// typical screen). It never guesses acoustic word onset/end timestamps.
+let animationHandle=null;
+function refreshPlayhead(){
+ document.getElementById("time").textContent=
+  audio.currentTime.toFixed(3)+" s · "+clock()+" ms";
+ if(wordReplayEndSeconds!==null &&
+    audio.currentTime>=wordReplayEndSeconds && !audio.paused){
+  wordReplayEndSeconds=null;
+  audio.pause();
+ }
+ draw();
+}
+function animationTick(){
+ animationHandle=null;
+ refreshPlayhead();
+ if(!audio.paused && !audio.ended){
+  animationHandle=requestAnimationFrame(animationTick);
+ }
+}
+function beginAnimation(){
+ if(animationHandle===null){
+  animationHandle=requestAnimationFrame(animationTick);
+ }
+}
+function stopAnimation(){
+ if(animationHandle!==null)cancelAnimationFrame(animationHandle);
+ animationHandle=null;
+ wordReplayEndSeconds=null;
+ refreshPlayhead();
+}
+audio.addEventListener("play",beginAnimation);
+audio.addEventListener("playing",beginAnimation);
+audio.addEventListener("pause",stopAnimation);
+audio.addEventListener("ended",stopAnimation);
+audio.addEventListener("seeked",refreshPlayhead);
 audio.addEventListener("timeupdate",()=>{
- document.getElementById("time").textContent=audio.currentTime.toFixed(3)+" s · "+clock()+" ms";
- draw()
+ if(audio.paused)refreshPlayhead();
 });
+refreshPlayhead();
 function download(filename,content,mime){
  const blob=new Blob([content],{type:mime}),url=URL.createObjectURL(blob);
  const a=document.createElement("a");a.href=url;a.download=filename;

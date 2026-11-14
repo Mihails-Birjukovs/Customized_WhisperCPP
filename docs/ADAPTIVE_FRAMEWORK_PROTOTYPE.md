@@ -419,3 +419,42 @@ human provenance and clearly marking the final partial token.
 Automatic transcript publication remains forbidden even if all
 available word timings are later verified. Independent recordings
 remain necessary to assess strategy generalization.
+
+
+### Stage 14 local worksheet usability: smooth audio-clock playhead (2026-11-14)
+
+The initial Chrome-friendly G01 worksheet on a short \`X:\` path was
+functional, but its red waveform cursor updated only on HTML media
+\`timeupdate\` events. Those events are intentionally throttled by browsers
+and made the cursor jump by large intervals, undermining precise manual
+word-onset and word-end marking.
+
+The reusable offline HTML generator now uses a \`requestAnimationFrame\`
+loop **only while the HTMLMediaElement is playing**, sampling the real
+\`audio.currentTime\` on each animation frame. It cancels that loop on
+pause/end and redraws immediately after seeking. The selected-word
+playback endpoint is checked on animation frames as well. The UI also
+includes 0.75×, 0.5×, 0.25× playback rates and ±10-ms playhead nudges.
+None of these controls infer word boundaries or edit the frozen human
+word inventory, and they do not require changing Chrome file-access
+settings or uploading speech.
+
+A versioned, private, short-path worksheet at
+\`X:\AI-Lab-Test\WhisperCPP\review\G01_Stage14_Smooth_v2\`
+was created with the same original 3.41-s G01 audio and nine reference
+words. The old short-path worksheet and the older deep-path HTML remain
+immutable. The private manifest pins the SHA-256 hashes.
+
+A real headless Chrome/Puppeteer check (using the workstation's existing
+browser packages, without installing dependencies) verified nine data
+rows, correct 3.41-s audio duration, zero runtime JS errors, 54
+animation-frame callbacks during 0.9 seconds of half-speed playback,
+and precise −10-ms/+10-ms playhead nudges. The separate synthetic
+Python suite checks the HTML generator's frame loop, speed controls,
+and unchanged no-auto-release semantics.
+
+The page is an *operator interface*, not an acoustic alignment
+algorithm. Playback interpolation is not a source of ground truth:
+the reviewer must still hear and explicitly verify every word's
+source-clock timestamps. Any exported JSON remains private and subject
+to the Stage 13 boundary evidence gate.
