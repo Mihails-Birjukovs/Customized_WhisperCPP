@@ -458,3 +458,62 @@ algorithm. Playback interpolation is not a source of ground truth:
 the reviewer must still hear and explicitly verify every word's
 source-clock timestamps. Any exported JSON remains private and subject
 to the Stage 13 boundary evidence gate.
+
+
+### Stage 16 — human-timed fully audible word fragment for private review
+
+The March 3, 2026 G01 listening/timing exercise was completed by one
+reviewer. The protected human CSV and JSON contain nine explicitly
+source-clock-timed words. Eight were reported fully heard; the ninth
+was context-completed from the acoustic prefix "opti" and ends exactly
+at the 3.410-s review clip boundary. The latter is right-censored
+speech evidence, **not** a fully validated ninth word.
+
+The reusable adaptive_whisper/editorial_fragment.py component accepts
+the established strict human-timing/audibility schema, a bounded source
+duration and explicitly labelled machine SRT hypotheses. It emits only
+a word-by-word **review SRT** for the fully audible, human-timed words,
+plus a separate immutable-provenance ledger recording:
+- the partial/context-completed word separately from confident word
+  cues (with its heard fragment and right-censor status);
+- for each human-timed word, all overlapping machine cue IDs and source
+  windows from each candidate;
+- caption boundaries falling *inside* a human word;
+- candidate input and proposed SRT SHA-256s;
+- unresolved editorial, linguistic and speaker-owner decisions.
+
+The source-clock word cue preview is **not** a final SRT and is not
+automatically spliced into a full transcript, even when the human
+timings pass the strict gate. Word boundaries do not imply speaker
+assignment, sentence punctuation, final caption grouping or approval
+to replace contradicting captions.
+
+Private Stage 16 replay against three separate frozen March 3
+hypotheses reproduced:
+- the historical original machine cue spanning the contested passage
+  (still a hypothesis, not ground truth);
+- the first provisional multi-region recovery with zero captions over
+  the exact 489,320–492,730-ms gap;
+- the extended-tail recovery with three crossing/competing captions.
+  Its cue boundary at **491,750 ms** falls inside the seventh
+  human-timed word.
+
+The private output is a review-only SRT of eight one-word cues at the
+original human times, a machine-ownership/partial-word sidecar and a
+nine-row editorial decision CSV with **all decisions blank**. It
+preserves the last incomplete word only in the sidecar. All sources
+were pre/post checked by SHA-256. No historic SRT, native output,
+frozen human transcription, or decoding default was overwritten.
+
+Synthetic regressions verify negative cases (unverified word times,
+malformed machine input, invalid timestamps, overlapping human words,
+missing full-word acoustic evidence) and positive cases (Unicode
+word identity, censored last token, split-word cue boundaries,
+independent input hashes and no auto-release).
+
+**Next editorial gate:** explicitly decide caption text/grouping,
+speaker ownership and whether the incomplete "opti" fragment should
+be rendered as incomplete or resolved from additional source audio.
+Until that decision, no authoritative full-recording subtitle
+correction or defensible publication WER is claimed. Independent
+recordings remain necessary for general adaptive-decoder acceptance.
