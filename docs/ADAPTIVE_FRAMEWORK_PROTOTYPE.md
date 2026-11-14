@@ -356,3 +356,66 @@ alignment** and explicit editorial reconciliation of both recovery
 hypotheses, preserving conflicting source cue provenance. Other
 held-out recordings remain necessary before automatic parameter
 selection can be accepted.
+
+
+### Stage 14 — offline human word-timing workbench and editorial reconciliation
+
+Stage 13 established that the original March 3 3.41-second gap contains
+human-audible speech, and that the longer-context decoder adds captions
+without recovering the exact words reliably. Stage 14 separates acoustic
+source-word timing from textual hypothesis comparison instead of
+guessing time locations from recognized captions.
+
+The reusable module adaptive_whisper/alignment_workbench.py creates a
+**private, static, local-only HTML worksheet** for a short 16-kHz
+mono PCM16 clip. It verifies the audio SHA and exact PCM frame count,
+checks the frozen JSON human review and locked original human-review
+hash, and computes a 5-ms min/max waveform envelope for interactive
+visualization. The reviewer can play/seek audio and explicitly mark
+onset/end of each already-transcribed human word using playback controls,
+waveform clicks, keyboard shortcuts or millisecond input. Verification
+checkboxes are **not** set automatically. The page exports versioned
+JSON and Excel-compatible CSV, preserving word audibility classes
+including partially heard/context-completed tokens.
+
+The page uses no JavaScript framework, internet resource or network API.
+The *generated HTML* is private, since it embeds the human transcription.
+Only the generic source code and synthetic tests belong in public Git.
+A JavaScript syntax check on the real generated page passes; interactive
+playback/click placement remains for human acceptance. Browser-assisted
+timestamps are human-supplied review data, **not** automatic forced
+alignment and not by themselves a release approval.
+
+The module adaptive_whisper/editorial_reconciliation.py separately
+analyzes the *lexical* relationship of human words to machine captions
+that intersect the reviewed source-clock interval. It uses bounded,
+deterministic semiglobal Levenshtein alignment (free machine prefix/suffix,
+because crossing captions can contain speech outside the short clip).
+Tentative matches retain original cue index/time and token SHA-256.
+The final partly heard word is excluded from exact-word comparison.
+Machine-readable reports contain hashes and provenance rather than
+the human transcript text. These are **review worklists, not
+word-timed alignments, WER or independent linguistic validation**.
+The optional private CSV worklist leaves *every editorial choice blank*;
+no candidate transcript is generated, corrected or released.
+
+A private SHA-gated replay on the frozen G01 human inventory generated
+nine human word rows (eight fully heard, one context-completed), a local
+3.41-second waveform workbench with 682 five-millisecond bins, and two
+text-free lexical provenance reports. The original SRT has zero
+intersecting machine tokens and minimum sequence-only edit cost eight
+against the eight fully heard words. The extended-tail SRT supplies ten
+tokens from crossing captions with sequence-only edit cost seven.
+Neither number is a valid interval WER. No human word-level timestamps
+have been assigned yet; the original source WAV/SRT, locked human CSV,
+Stage 10/12 candidates and Stage 13 decision records are unchanged.
+
+**Scientific next gate:** the reviewer may use the offline HTML to
+mark any certain source-clock word intervals. Every annotation remains
+a new, hash-versioned human review. A subsequent explicit editorial
+reconciliation must decide which spoken words and source timestamps
+belong in an amended, versioned candidate while retaining machine and
+human provenance and clearly marking the final partial token.
+Automatic transcript publication remains forbidden even if all
+available word timings are later verified. Independent recordings
+remain necessary to assess strategy generalization.
