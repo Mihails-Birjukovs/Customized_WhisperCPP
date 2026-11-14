@@ -293,3 +293,66 @@ An exact shared-budget synthetic regression exercises a 36,000-ms cap
 where Region 1 consumes 22,000 ms, leaving 14,000 ms for Region 2:
 the second nominal 20,000-ms window must still execute its actual
 13,000-ms plan. Both 3.10 and 3.14 synthetic test suites pass.
+
+
+### Stage 13 — human-audible speech omission as a release-blocking regression
+
+The private March 3 natural-recording audio review confirmed that a
+3.410-s source-clock gap with no provisional SRT cue contains audible
+speech. A longer native retry restored some caption coverage but not
+word-faithful recognition. This separates two distinct questions:
+(1) is speech present without captions? and (2) are the actual spoken
+words and their timing represented correctly? Energy coverage and an
+absence of repetition triggers cannot answer the latter.
+
+The public, backend-neutral module
+adaptive_whisper/boundary_review.py adds a **human-reviewed interval**
+contract and a non-destructive assessment gate. A private review must
+declare the original source-clock interval, hashes of source audio and
+locked human reference, positive human speech attestation, and an
+ordered word inventory. Each word explicitly records whether it was
+fully audible or only partially heard and context-completed. Word
+timestamps remain null until independently verified by listening;
+the code does **not** derive them from cue length or audio energy.
+A context-completed word is never silently presented as entirely
+audible or considered ready for editorial validation.
+
+The gate compares the same human-confirmed interval with candidate
+SRT cues. Zero intersecting cues yields
+HUMAN_CONFIRMED_SPEECH_WITHOUT_CAPTION, a regression failure for
+completeness. One or more intersecting cues yields
+CAPTION_PRESENT_TEXT_UNVERIFIED, **not** a pass for linguistic
+accuracy. Crossing cues, missing manually verified word timestamps
+and partially heard words are explicit blockers. Even when all human
+timestamps are filled, the result is *ready for editorial review*
+only; an explicit editorial decision, provenance and source-word
+validation remain necessary. Automatic publication is **always
+forbidden** by this module.
+
+The file-backed wrapper verifies user-provided SHA-256s for the
+candidate SRT, locked review JSON and source audio, writes a new
+text-free report exclusively and rechecks hashes. The full private
+human transcript/word-timing template and source WAV stay outside
+GitHub. Synthetic tests exercise true missing cues, misleading
+crossing cues, manually verified versus inferred timing, partial
+words, source-time bounds, hash collision/overwrite safety and
+malformed input refusal.
+
+A private hash-gated replay on the actual March 3 sources generated
+two **review-only** reports:
+- Original natural single-invocation candidate: human-confirmed
+  speech with zero crossing/intersecting captions.
+- Extended-tail candidate: three intersecting captions whose
+  source-word correctness remains unverified.
+
+The real review provides eight fully audible words and a ninth
+context-completed token whose audio revealed only its beginning.
+No word-level timestamps have been certified; the blank alignment
+template contains zero invented boundaries. No transcript is
+released, manually replaced or re-timed at Stage 13.
+
+Next scientific gate: source-clock word-by-word **human acoustic
+alignment** and explicit editorial reconciliation of both recovery
+hypotheses, preserving conflicting source cue provenance. Other
+held-out recordings remain necessary before automatic parameter
+selection can be accepted.
