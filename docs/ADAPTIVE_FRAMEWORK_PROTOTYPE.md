@@ -571,3 +571,85 @@ Synthetic regression tests cover clipping, word identities,
 diacritics, missing/duplicate corroboration, impossible source
 intervals, changed original captions, insufficient/unknown human
 timings, and strict no-auto-release provenance.
+
+
+### Stage 18 — reference-free audio/SRT gap candidates and machine-only review retries
+
+The March 3 human-corroborated word identity is a **regression label**
+only, not an input to automatic recovery. The generic module
+adaptive_whisper/uncaptioned_recovery.py searches for uncovered audio
+activity using a fixed multithreshold RMS audio-energy mask and the
+existing SRT clock. Its pre-registered development policy uses 100-ms
+frames, energy thresholds -48/-42/-36 dBFS, min 500-ms activity,
+200-ms bridging, 250-ms cue padding, a 1200-ms minimum uncovered run,
+and at least two thresholds supporting a candidate. Audio energy
+is explicitly NOT a speech recognizer. A sustained synthetic tone
+is deliberately included as a false-positive unit test.
+
+An uncovered activity core can be expanded to the empty interval
+between neighboring unchanged machine captions, with a bounded
+maximum gap of 20 seconds. Neither step reads human transcription or
+assigns word/phoneme time bounds. Two deterministic native PCM retry
+windows use 4-second and 12-second context on either side of the
+caption-fenced interval. Native outputs retain source-clock mapping,
+exact derived WAV hashes, CUDA device evidence and bounded runtime.
+
+The strict machine-only agreement gate requires nonempty, identical
+Unicode-normalized tokens from both retry contexts ENTIRELY INSIDE
+the missing subtitle interval; any crossing cues invalidate consensus.
+Even a pass is only an unverified machine review suggestion:
+no auto insertion, no human WER, no transcript release.
+
+A second, weaker review-only route separately preserves any native
+SRT cue wholly inside the original gap and records crossing cues
+as unowned. It creates private source-clock fragment SRTs, not
+changes to the complete timeline. It never trims crossing machine
+cues by guessed word timing.
+
+Two independent 75-second audio excerpts (recordings dated 2026-01-22
+and 2026-04-28) were prepared from previously archived authentic
+source PCM clips. Both native CUDA large-v3 baseline invocations
+completed, with positive GPU evidence. Strict native full JSON
+validation was unsuccessful and raw JSON outputs remain private.
+The SRTs are evaluated as machine pseudo-references, never human truth.
+
+A deterministic artificial-caption-omission challenge deletes one
+machine caption per source (mid-recording selection rule chosen before
+reading native text), leaving other parsed cue text/source times
+unchanged. The fixed multithreshold detector found the missing audio
+activity 2/2 times, expanding to exactly the two deleted SRT cue
+windows. On original unmasked transcripts it returned 0 candidates
+for both. This tests the injected-caption-loss mechanism, not natural
+speech omissions, general false-positive rate or human word accuracy.
+
+Two separate native CUDA retries passed on both clips. Strict
+machine-word consensus abstained 2/2 because native cues crossed
+gap boundaries and/or gave nonidentical word sequences. The weaker
+review-only owned-cue extraction recovered 13 machine tokens wholly
+inside the January 22 gap from the longer context (token multiset F1
+0.96 against the deliberately withheld MACHINE caption);
+the shorter context had no wholly owned cue. On April 28, neither
+context produced a wholly owned cue. No full-timeline correction was
+made, and all negative results are retained.
+
+The March 3 21-minute development regression was checked using
+the same policy without feeding human words to the detector.
+It found one 2800-ms uncovered audio core in the already
+human-confirmed gap, then expanded to exactly 489,320-492,730 ms.
+The linguistically inaccurate extended-tail SRT produced no
+gap candidate because its captions covered the sound. Coverage is not
+linguistic correctness.
+
+SHA-gated private native scripts and CSV/JSON reports stay outside
+GitHub at X:\AI-Lab-Test\WhisperCPP\scripts\stage18_*.
+Generated audio, transcription text, pseudo-references and
+native logs remain private under the Stage 18 results/CUDA folder.
+Only generic implementation and synthetic tests belong in GitHub.
+
+Scientific status: candidate detection works on two controlled
+independent-audio dropout fixtures, but automatic word-faithful
+transcript repair is NOT validated. Two outputs of one ASR model are
+correlated, not independent adjudication. A future truly held-out
+recording and human reference are needed to quantify real
+omission-detection precision/recall and WER. Stage 8 remains
+experimental; no automatic promotion, PR merge or release.
