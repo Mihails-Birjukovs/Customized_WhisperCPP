@@ -1,0 +1,25 @@
+[project]
+site_name = "Customized WhisperCPP | Scientific documentation"
+site_description = "Error-adaptive speech transcription methods and evidence limitations."
+site_url = "https://Mihails-Birjukovs.github.io/Customized_WhisperCPP/"
+docs_dir = "site_docs"
+site_dir = "site"
+repo_url = "https://github.com/Mihails-Birjukovs/Customized_WhisperCPP"
+repo_name = "Mihails-Birjukovs/Customized_WhisperCPP"
+extra_css = ["stylesheets/inm-documentation-v1.css"]
+nav = [
+  { "Overview" = "index.md" },
+  { "Getting started" = "getting-started.md" },
+  { "Architecture" = "architecture.md" },
+  { "Adaptive recovery" = "adaptive-recovery.md" },
+  { "Validation" = "validation.md" },
+  { "Provenance" = "provenance.md" },
+  { "Roadmap" = "roadmap.md" },
+  { "Credits and licensing" = "credits.md" },
+]
+[project.theme]
+language = "en"
+features = [
+ "navigation.tabs", "navigation.footer", "navigation.top",
+ "search.highlight", "content.code.copy"
+]

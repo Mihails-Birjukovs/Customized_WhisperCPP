@@ -68,3 +68,9 @@ local.properties
 
 # AGENTS
 .pi/SYSTEM.md
+
+# Stage 22 local-only documentation build artifacts
+/site/
+/.zensical/
+/__pycache__/
+*.pyc
