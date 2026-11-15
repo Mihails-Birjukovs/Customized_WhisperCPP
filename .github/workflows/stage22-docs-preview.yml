@@ -1,0 +1,37 @@
+name: Stage 22 documentation strict preview (no deployment)
+on:
+  pull_request:
+    paths:
+      - 'README.md'
+      - 'UPSTREAM_README.md'
+      - 'docs/**'
+      - 'site_docs/**'
+      - 'zensical.toml'
+      - 'scripts/validate_stage22_docs.py'
+      - 'scripts/check_stage22_built_site.py'
+      - 'tests/site_docs/**'
+      - '.github/workflows/stage22-docs-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  docs-only-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned documentation generator
+        run: python -m pip install zensical==0.0.67
+      - name: Validate exact reviewed source file set
+        run: python scripts/validate_stage22_docs.py
+      - name: Run publication guard regression tests
+        run: python -m unittest discover -s tests/site_docs -v
+      - name: Build docs (no Pages permission or deploy)
+        run: zensical build --clean --strict
+      - name: Check built HTML and styles
+        run: python scripts/check_stage22_built_site.py
