@@ -285,22 +285,23 @@ def estimated_strategy_order(trigger:Trigger,audio_ms:int,
         jobs=0
         covered_ms=0
         boundary_count=0
-        if window_ms<=policy.max_total_decode_ms:
-            try:
-                planning=RetryPolicy(
-                    window_ms=window_ms,overlap_ms=min(step.overlap_ms,window_ms-1),
-                    lead_ms=step.lead_ms if step.scope=="trigger" else 0,
-                    tail_ms=step.tail_ms if step.scope=="trigger" else 0,
-                    max_jobs=min(step.max_jobs,policy.max_total_jobs),
-                    max_audio_ms=policy.max_total_decode_ms)
-                plan=plan_retries(_planning_candidate(trigger,audio_ms,step),
-                                  audio_ms,planning)
-                jobs=len(plan.windows)
-                covered_ms=sum(w.duration_ms for w in plan.windows)
-                feasible=plan.full_coverage and bool(jobs)
-                boundary_count=max(0,jobs-1)
-            except ValueError:
-                feasible=False
+        # Do not reject on the nominal maximum: the actual source span
+        # can be shorter. The retry planner enforces the shared audio budget.
+        try:
+            planning=RetryPolicy(
+                window_ms=window_ms,overlap_ms=min(step.overlap_ms,window_ms-1),
+                lead_ms=step.lead_ms if step.scope=="trigger" else 0,
+                tail_ms=step.tail_ms if step.scope=="trigger" else 0,
+                max_jobs=min(step.max_jobs,policy.max_total_jobs),
+                max_audio_ms=policy.max_total_decode_ms)
+            plan=plan_retries(_planning_candidate(trigger,audio_ms,step),
+                              audio_ms,planning)
+            jobs=len(plan.windows)
+            covered_ms=sum(w.duration_ms for w in plan.windows)
+            feasible=plan.full_coverage and bool(jobs)
+            boundary_count=max(0,jobs-1)
+        except ValueError:
+            feasible=False
         score=round(covered_ms/1000*policy.assumed_native_rtf
                     +jobs*policy.estimated_startup_s
                     +boundary_count*policy.boundary_review_penalty_s,3) if feasible else None
@@ -333,7 +334,9 @@ def run_adaptive(
     vad_name:str,
     initial_profile:DecodeProfile,
     policy:AdaptivePolicy=AdaptivePolicy(),
-    adapters_by_strategy:dict[str,NativeAdapter] | None = None
+    adapters_by_strategy:dict[str,NativeAdapter] | None = None,
+    *,
+    trigger_override:Trigger | None = None,
 )->dict[str,Any]:
     """Run automatically; generate only *provisional* recovery outputs.
 
@@ -356,11 +359,22 @@ def run_adaptive(
     source_frames,audio_ms=_source_pcm16(src)
     if output_parent.exists():
         raise FileExistsError("Adaptive output root already exists")
-    output_parent.mkdir(exist_ok=False)
     baseline_detect=detect_pathologies(text,audio_ms,
                                      failure_or_timeout=baseline_failed,
                                      policy=policy.detection)
     trigger,eligible_count=_new_span_bounds(baseline_detect,audio_ms,policy)
+    if trigger_override is not None:
+        eligible=[t for t in baseline_detect if
+                  t.kind!='no_output_unverified' or policy.allow_unverified_no_output_trigger]
+        if (trigger_override.start_ms < 0 or
+            trigger_override.start_ms >= audio_ms or
+            trigger_override.end_ms <= trigger_override.start_ms or
+            trigger_override.end_ms > audio_ms+100 or
+            not any(trigger_override.start_ms <= t.start_ms and
+                    trigger_override.end_ms >= t.end_ms for t in eligible)):
+            raise ValueError('Override must cover a detected eligible pathology within source time')
+        trigger=trigger_override
+    output_parent.mkdir(exist_ok=False)
     ordered_strategies, cost_estimates=(
         estimated_strategy_order(trigger,audio_ms,policy)
         if trigger is not None else ((),[])
@@ -375,7 +389,8 @@ def run_adaptive(
         "baseline_detected":[asdict(t) for t in baseline_detect],
         "eligible_triggers":eligible_count,
         "selected_trigger":asdict(trigger) if trigger else None,
-        "all_regions_processed":eligible_count <= policy.max_regions,
+        "trigger_selection_override":trigger_override is not None,
+        "all_regions_processed":eligible_count <= policy.max_regions and trigger_override is None,
         "cost_planning":{
             "enabled":policy.cost_aware,
             "assumed_native_rtf":policy.assumed_native_rtf,
@@ -411,7 +426,9 @@ def run_adaptive(
             }
             report["attempts"].append(attempt)
             window_ms=min(step.window_ms,audio_ms)
-            if remaining_ms<window_ms or remaining_jobs<1:
+            # Compare remaining budget with the actual retry plan,
+            # not the strategy's nominal maximum window length.
+            if remaining_ms<1000 or remaining_jobs<1:
                 attempt["status"]="SKIPPED_GLOBAL_BUDGET"
                 break
             rp=RetryPolicy(window_ms=window_ms,

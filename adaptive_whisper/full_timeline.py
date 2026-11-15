@@ -132,16 +132,25 @@ def assemble_full_timeline(
         if c.start_ms<end:
             flag("BASELINE_SUFFIX_CUE_CROSSES_RETRY_END",(c.start_ms,end),
                  source_cue_index=c.index)
+    # Scan *all* overlapping cross-source cue pairs, not only adjacent cues.
+    # A long baseline caption may overlap two or more shorter recovery cues;
+    # an adjacency-only inspection can miss the second disputed hypothesis.
+    for i,(a,s0) in enumerate(selected):
+        for b,s1 in selected[i+1:]:
+            if b.start_ms >= a.end_ms:
+                break
+            if s0==s1:
+                continue
+            overlap=max(0,min(a.end_ms,b.end_ms)-max(a.start_ms,b.start_ms))
+            if overlap>policy.max_cross_source_overlap_ms:
+                flag("CROSS_SOURCE_DIFFERENT_HYPOTHESES_OVERLAP",
+                     (max(a.start_ms,b.start_ms),min(a.end_ms,b.end_ms)),
+                     overlap_ms=overlap,sources=[s0,s1],
+                     source_cue_indices=[a.index,b.index])
     for (a,s0),(b,s1) in zip(selected,selected[1:]):
         if s0==s1:
             continue
-        overlap=max(0,min(a.end_ms,b.end_ms)-max(a.start_ms,b.start_ms))
         gap=max(0,b.start_ms-a.end_ms)
-        if overlap>policy.max_cross_source_overlap_ms:
-            flag("CROSS_SOURCE_DIFFERENT_HYPOTHESES_OVERLAP",
-                 (max(a.start_ms,b.start_ms),min(a.end_ms,b.end_ms)),
-                 overlap_ms=overlap,sources=[s0,s1],
-                 source_cue_indices=[a.index,b.index])
         if gap>=policy.min_gap_to_review_ms:
             flag("CROSS_SOURCE_CAPTION_GAP",(a.end_ms,b.start_ms),
                  gap_ms=gap,sources=[s0,s1])

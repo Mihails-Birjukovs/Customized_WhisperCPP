@@ -65,6 +65,23 @@ class FullTimelineTests(unittest.TestCase):
         self.assertIn("Alternative speech from original audio.",merged)
         self.assertFalse(report["human_audio_verification"])
 
+    def test_nonadjacent_cross_source_overlap_is_also_reported(self):
+        # Historical prefix spans two smaller alternative captions. Both
+        # overlaps need review, even though the source order is A, B, C.
+        baseline=srt([(0,3100,"Long historical hypothesis crosses both.")])
+        retry=srt([(1700,2200,"Recovered first hypothesis."),
+                   (2400,2900,"Recovered second hypothesis.")])
+        _,r=assemble_full_timeline(baseline,retry,
+                    original_duration_ms=4000,
+                    repaired_audio_window_ms=(1600,3500),
+                    policy=TimelinePolicy(max_cross_source_overlap_ms=400))
+        hazards=[x for x in r["hazards"]
+                 if x["code"]=="CROSS_SOURCE_DIFFERENT_HYPOTHESES_OVERLAP"]
+        self.assertEqual(len(hazards),2)
+        self.assertEqual([x["interval_ms"] for x in hazards],
+                         [[1700,2200],[2400,2900]])
+        self.assertEqual(r["status"],"PROVISIONAL_REVIEW_REQUIRED")
+
     def test_small_native_rounding_is_flagged_not_silently_clamped(self):
         baseline=srt([(0,2000,"Original lead.")])
         retry=srt([(2100,4020,"Recovered final text.")])
