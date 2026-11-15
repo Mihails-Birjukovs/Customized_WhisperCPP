@@ -517,3 +517,57 @@ be rendered as incomplete or resolved from additional source audio.
 Until that decision, no authoritative full-recording subtitle
 correction or defensible publication WER is claimed. Independent
 recordings remain necessary for general adaptive-decoder acceptance.
+
+
+### Stage 17 — cross-clip completion of right-censored human word
+
+After Stage 16, the reviewer clarified that the last word of the
+3.410-s G01 clip was **already fully heard** in prior overlapping
+audio-first reviews. Reinspection of the frozen 21-s B03 and 10-s
+G02 review CSVs independently of machine captions confirmed the
+complete word "optimizēt" in both references. These clips were heard
+by the **same human reviewer**, so the evidence is repeated audio
+coverage, not inter-reviewer agreement.
+
+This changes the evidence ledger: the final **word identity** is
+human-corroborated by the longer clips. It does **not** retroactively
+make the word fully audible within G01 or establish its full acoustic
+end timestamp. G01 still ends at 492,730 ms while the word is
+underway; that clock is right-censored.
+
+The generic adaptive_whisper/crossclip_gap_repair.py module has a
+fail-closed, review-only construction:
+
+- Require strict, human-verified ordered word timestamps and an
+  explicitly censored final word in the short clip.
+- Require at least two distinct, audio-first, longer source-clock
+  review clips that span the final word's short-clip cutoff and
+  actually contain its full human-transcribed word. Preserve each
+  frozen reference hash. The fact that the same person reviewed
+  them is explicitly disclosed; no external ground-truth claim.
+- Require that the proposed source-clock repair gap contains **no
+  existing machine subtitle cue**. Refuse to overwrite, re-time or
+  delete existing cues.
+- Generate a complete, separately versioned **private review-only**
+  full-timeline SRT with just one additional caption. Preserve every
+  original cue's text/time and relative order, verifying SRT parse
+  roundtrip and full source-clock constraints.
+- Keep the final word's acoustic end unverified. The short-clip
+  right cutoff is a provisional caption display boundary, NOT a
+  measured or independently validated complete word offset.
+- Never automatically release a transcript, alter ASR defaults,
+  change historical baselines or merge a code PR.
+
+A private source-hash-gated March 3 replay uses G01 human word times,
+B03 and G02 frozen audio-first human captions and the first
+provisional 234-cue machine timeline. It inserts the exact nine-word
+human source phrase as one caption at 489,620–492,730 ms, creating
+235 cues without changing any of the original 234 cues. The new
+candidate is an editorial review artifact, **not** a released
+transcript and not a validated whole-recording transcription.
+Existing machine errors/hazards outside the gap remain unresolved.
+
+Synthetic regression tests cover clipping, word identities,
+diacritics, missing/duplicate corroboration, impossible source
+intervals, changed original captions, insufficient/unknown human
+timings, and strict no-auto-release provenance.
