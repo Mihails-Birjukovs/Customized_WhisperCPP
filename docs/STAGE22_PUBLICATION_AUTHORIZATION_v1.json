@@ -1,0 +1,18 @@
+{
+  "schema": "customized-whispercpp/stage22-pages-approval/v1",
+  "approved_date": "2026-11-16",
+  "owner_authorized_in_conversation": true,
+  "approval_summary": "PR#6 approved, publication gates approved, Pages source GitHub Actions",
+  "repository": "Mihails-Birjukovs/Customized_WhisperCPP",
+  "default_branch": "master",
+  "approved_base_merge_commit": "dc6e1a170e8f33b6c78105f7f0d352d933ec721e",
+  "deployment_ref": "refs/heads/master",
+  "source_allowlist": "docs/STAGE22_SITE_SOURCE_ALLOWLIST_v1.json",
+  "source_files_count": 9,
+  "approved_for_website_publication": true,
+  "allowed_rights_scope": "Owner technical text, synthetic methods, approved aggregate measures, original CSS; no institutional logo, raw audio, human notes or private ASR output",
+  "experimental_code_merge_authorized": false,
+  "human_WER_CER_validated": false,
+  "live_site_verified_at_authorization": false,
+  "future_changes_require_explicit_sha_allowlist_updates": true
+}

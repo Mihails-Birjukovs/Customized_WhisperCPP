@@ -21,7 +21,11 @@ class Stage22DocsGuardTests(unittest.TestCase):
  def test_modified_content_hash_is_blocked(self):
   self._fixture(lambda data,root:(root/"index.md").write_text("changed",encoding="utf-8"))
  def test_no_public_deployment_without_distinct_approval(self):
-  self._fixture(lambda data,root:data.update(deployment_authorized=True))
+  self._fixture(lambda data,root:data.update(deployment_authorized=False))
+ def test_missing_rights_approval_rejected(self):
+  self._fixture(lambda data,root:data.update(rights_approval_for_public_pages=False))
+ def test_nonmaster_deployment_rejected(self):
+  self._fixture(lambda data,root:data.update(deployment_ref="refs/heads/other"))
  def test_unsafe_embedded_file_path_rejected(self):
   def change(data,root):
    p=root/"index.md"

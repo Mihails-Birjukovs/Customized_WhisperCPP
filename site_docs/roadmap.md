@@ -11,6 +11,6 @@ The fork has a traceable backend adapter, output repetition detector, bounded so
 3. Rechecking the remaining historic problem regions and complete original recordings.
 4. Caption joins, word ownership and independent acoustic timing.
 5. Broader hardware/OS/native JSON integrity testing.
-6. Separately accepted software release and GitHub Pages deployment.
+6. Separately accepted experimental software release, and periodic published-site link, stylesheet, accessibility and deployment-revision verification.
 
 Do not promote experimental defaults solely from output-loop clearance.

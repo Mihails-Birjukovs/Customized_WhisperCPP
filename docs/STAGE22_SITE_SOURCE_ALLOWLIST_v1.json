@@ -1,6 +1,6 @@
 {
   "schema": "customized-whispercpp/stage22-curated-public-source/v1",
-  "status": "REVIEW_SOURCE_ONLY_NOT_APPROVED_FOR_DEPLOYMENT",
+  "status": "OWNER_APPROVED_PAGES_PUBLICATION_2026-11-16",
   "frozen_development_source_sha": "442aa2a01c1319041354aaabfe82b3dc2ccefb2a",
   "private_scientific_aggregate_sha256": "9ef35c1c627808e004a3c7f6c7ec0c0413b2bc7047fcbb1726893dd6e8f0f37f",
   "approved_for_build_only": [
@@ -18,14 +18,17 @@
     "adaptive-recovery.md": "d8a8904b1d2e8a8d8df049e8b05eeb5b6ec336cf7664ec4811936257f28187f5",
     "architecture.md": "b44ba1b340e2f3a8694203193782944b80f6d6b5996221eb125e10cc8ac758aa",
     "credits.md": "00c5ae0eb2ec0d272175e02795517f217b26d609be3ca9766238858faa8b20e2",
-    "getting-started.md": "56ef73df11cda9c2defc990b81a8a5e15eb2e62f8d633f71ce889109b629a4b7",
+    "getting-started.md": "dad99bc16168c1b4c5989794721502f636eb65b99aceee3e323d71241e8d35c7",
     "index.md": "ea2a33621787c50ef71cf8f30abd8a58784dd6992b21af5757e4e1413fcb0226",
-    "provenance.md": "c0b488e96fe0e7f4f18714ea4195954c9d5e820a4777c848021db6612f328939",
-    "roadmap.md": "270cdf33424c822e0e350485f6a773abedc8652423046a2d949bec99caa9950f",
+    "provenance.md": "dbd2230a49215343b06c53e785ce4b9b7c3a01aa1f8bf6571a954e67527eb6b4",
+    "roadmap.md": "102202bcf137dca4e4a05b753daea085a1df3486894d64eb76a3530b56d40d07",
     "stylesheets/inm-documentation-v1.css": "455877806268b779eca639ed5f4551a0b772717df998e74c0516c51c9f57a9dd",
     "validation.md": "6a59b985c74659068782d3d879901d0cc5e1d06b1b3f5b480caf1c37db5dc4ca"
   },
   "content_rights": "Technical content derived from user's own fork and approved aggregate results. No raw research data, transcripts, logo or figures.",
-  "rights_approval_for_public_pages": false,
-  "deployment_authorized": false
+  "rights_approval_for_public_pages": true,
+  "deployment_authorized": true,
+  "deployment_ref": "refs/heads/master",
+  "publication_authorization_record": "docs/STAGE22_PUBLICATION_AUTHORIZATION_v1.json",
+  "owner_review_scope": "Curated original Markdown/CSS and Stage20 aggregates only; no official marks or private recordings"
 }

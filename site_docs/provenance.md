@@ -12,4 +12,4 @@ The upstream MIT license does not automatically cover source recordings, third-p
 
 ## Release gates
 
-Source branch state, CI passing, CUDA execution, linguistic correctness, privacy clearance and public website deployment are **independent** acceptance states. This Zensical site is currently a **source draft**, not a deployed public documentation website. Its colors are INM-inspired; no official marks are used.
+Source branch state, CI passing, CUDA execution, linguistic correctness, privacy clearance and public website deployment are **independent** acceptance states. This site is authorized for public GitHub Pages deployment from the default master branch. Actual live publication must be checked against the completed Pages job. Its styling is INM-inspired, with no official institutional marks. Documentation publication does not approve release of experimental transcription code or research data.

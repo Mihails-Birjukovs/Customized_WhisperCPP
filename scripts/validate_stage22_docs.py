@@ -14,9 +14,18 @@ BLOCKED=[
 def audited(root=SITE,manifest=MANIFEST):
  data=json.loads(Path(manifest).read_text(encoding="utf-8"))
  allowed=data["approved_for_build_only"]
- if (data.get("deployment_authorized") is not False or
-     data.get("rights_approval_for_public_pages") is not False):
-  raise ValueError("No automatic approval for public deployment")
+ if (data.get("deployment_authorized") is not True or
+     data.get("rights_approval_for_public_pages") is not True or
+     data.get("deployment_ref") != "refs/heads/master"):
+  raise ValueError("Owner approved master-only site deployment required")
+ auth=json.loads((ROOT/"docs/STAGE22_PUBLICATION_AUTHORIZATION_v1.json").read_text(encoding="utf-8"))
+ if (auth.get("owner_authorized_in_conversation") is not True or
+     auth.get("approved_for_website_publication") is not True or
+     auth.get("repository") != "Mihails-Birjukovs/Customized_WhisperCPP" or
+     auth.get("deployment_ref") != "refs/heads/master" or
+     auth.get("source_files_count") != len(allowed) or
+     data.get("publication_authorization_record") != "docs/STAGE22_PUBLICATION_AUTHORIZATION_v1.json"):
+  raise ValueError("Approved publication record or curated source mismatch")
  if len(allowed)!=len(set(allowed)):
   raise ValueError("Duplicate document")
  actual=sorted(p.relative_to(root).as_posix() for p in Path(root).rglob("*") if p.is_file())
@@ -39,6 +48,6 @@ def audited(root=SITE,manifest=MANIFEST):
   if re.search(r"(?i)(?:data:|src\s*=\s*['\"]https?://)",text):
    raise ValueError("Unreviewed embedded external asset: "+rel)
  if "index.md" not in allowed:raise ValueError("Missing home page")
- return {"site_files":len(actual),"verified":True,"deployment":False}
+ return {"site_files":len(actual),"verified":True,"deployment":"approved_master_only"}
 if __name__=="__main__":
  print(json.dumps(audited(),indent=2))

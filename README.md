@@ -6,7 +6,7 @@ This fork extends native **CPU/CUDA/Vulkan** inference with a separate Python su
 
 > **Status, 15 November 2026:** Experimental adaptive source lives on feature branches and in [draft PR #3](https://github.com/Mihails-Birjukovs/Customized_WhisperCPP/pull/3) and [draft PR #4](https://github.com/Mihails-Birjukovs/Customized_WhisperCPP/pull/4). The default master branch is **not** the validated Stage 18/20 implementation. No production recovery policy has been promoted.
 
-[Documentation source](site_docs/index.md) | [Current status](docs/RELEASE_STATUS.md) | [Validation](site_docs/validation.md) | [Preserved upstream README](UPSTREAM_README.md)
+[Documentation website](https://mihails-birjukovs.github.io/Customized_WhisperCPP/) | [Documentation source](site_docs/index.md) | [Current status](docs/RELEASE_STATUS.md) | [Validation](site_docs/validation.md) | [Preserved upstream README](UPSTREAM_README.md)
 
 ## Why this fork exists
 
@@ -45,4 +45,4 @@ This is a fork of **[ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.c
 
 ## Documentation status
 
-The Zensical source under [site_docs](site_docs/index.md) is prepared for review with an INM-inspired blue/navy/orange design but **no official institutional logo**. Its URL in configuration is a **proposed** GitHub Pages address, not a verified live website. Public Pages deployment, branch merges and production promotion require separate approval.
+The documentation is approved for publication via a master-only GitHub Actions workflow at https://mihails-birjukovs.github.io/Customized_WhisperCPP/. Live availability must be verified independently after deployment. No official institutional logo is included. The experimental transcription controller remains unmerged and unpromoted.
