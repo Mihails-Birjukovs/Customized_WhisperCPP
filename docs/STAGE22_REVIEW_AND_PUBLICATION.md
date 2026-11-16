@@ -10,11 +10,11 @@ Changes: preserve old upstream README at repository root; replace misleading for
 - [x] Scope separates structural repetition from acoustic WER/CER and full recording coverage.
 - [x] No official logo or redistributed research audio included.
 - [x] Local Zensical 0.0.67 strict source build and generated HTML/CSS/navigation checks passed on Windows Python 3.10 (2026-11-15).
-- [ ] Reviewed draft PR by owner for wording, authorship, publication rights and software provenance.
-- [ ] Pages eligibility and owner authorization for live GitHub Pages deployment.
+- [x] Documentation-only PRs #5 and #6 reviewed and approved by owner; PR #6 merged into master.
+- [x] Owner authorized Pages publication on 2026-11-16; repository Pages source set to GitHub Actions. Successful deployment is a separate evidence gate.
 - [ ] Live browser checks (stylesheets, links, mobile, logo rights, accessibility, actual deployed SHA).
 - [ ] Separate experimental-code merge and human transcription validation gates.
 
 **The source repository is public, so draft PR content is already visible.** Only curated, non-private documentation should be committed. The CI preview job uses contents:read and does not deploy.
 
-Proposed page URL in configuration is not evidence that a Pages site exists. The upstream-readme archive and historic scope archive are retained for reproducibility and rollback. Branch cleanup requires its own audit.
+Approved site URL in configuration is not evidence of successful deployment; verify the actual Pages run and public website. The upstream-readme archive and historic scope archive are retained for reproducibility and rollback. Branch cleanup requires its own audit.

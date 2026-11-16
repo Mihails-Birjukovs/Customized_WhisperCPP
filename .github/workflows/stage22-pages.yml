@@ -1,0 +1,68 @@
+name: Stage 22 Zensical Documentation — Pages
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/stage22-pages.yml'
+      - 'zensical.toml'
+      - 'site_docs/**'
+      - 'docs/STAGE22_SITE_SOURCE_ALLOWLIST_v1.json'
+      - 'docs/STAGE22_PUBLICATION_AUTHORIZATION_v1.json'
+      - 'scripts/validate_stage22_docs.py'
+      - 'scripts/check_stage22_built_site.py'
+      - 'tests/site_docs/**'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: 'customized-whispercpp-pages'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.repository == 'Mihails-Birjukovs/Customized_WhisperCPP' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned Zensical
+        run: python -m pip install zensical==0.0.67
+      - name: Verify approved site source and deployment scope
+        run: python scripts/validate_stage22_docs.py
+      - name: Run publication guard tests
+        run: python -m unittest discover -s tests/site_docs -v
+      - name: Build strict static website
+        run: zensical build --clean --strict
+      - name: Verify built HTML/CSS/navigation
+        run: python scripts/check_stage22_built_site.py
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload only generated static site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    if: github.repository == 'Mihails-Birjukovs/Customized_WhisperCPP' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy validated Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

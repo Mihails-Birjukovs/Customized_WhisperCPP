@@ -10,7 +10,7 @@
 | Draft PR #4 | Stage 8–18 experimental recovery; unmerged |
 | Stage 20 | Private source-audio problem-region replay, completed |
 | Stage 21 | Blind human-audio reference packet prepared; reference **pending** |
-| Stage 22 | Documentation review branch, no merge or deployment |
+| Stage 22 | Documentation merged via PR #6; Pages publication approved, awaiting independent live deployment readback |
 
 ## Frozen Stage 20 results
 

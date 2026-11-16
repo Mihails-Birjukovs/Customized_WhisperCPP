@@ -10,7 +10,7 @@ python -m unittest discover -s tests/adaptive_whisper -v
 
 For native inference, provide a separately trusted whisper-cli executable and matching model files. Historical Windows CUDA experiments used Whisper large-v3 and Silero v6.2.0. The retry-controller input contract uses 16-kHz mono PCM16 WAV. Check backend selection, binary/model integrity and available CUDA hardware before claiming successful execution.
 
-For upstream compilation and base whisper-cli use, consult the [preserved upstream README](https://github.com/Mihails-Birjukovs/Customized_WhisperCPP/blob/docs/stage22-modernization-20261115/UPSTREAM_README.md). These are not automatically the native experimental distribution instructions.
+For upstream compilation and base whisper-cli use, consult the [preserved upstream README](https://github.com/Mihails-Birjukovs/Customized_WhisperCPP/blob/master/UPSTREAM_README.md). These are not automatically the native experimental distribution instructions.
 
 ## Safe usage boundary
 
