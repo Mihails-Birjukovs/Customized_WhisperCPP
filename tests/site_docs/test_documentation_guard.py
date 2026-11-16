@@ -16,6 +16,11 @@ class Stage22DocsGuardTests(unittest.TestCase):
    target.write_text(json.dumps(current),encoding="utf-8")
    with self.assertRaises(ValueError):
     audited(docs/"site",target)
+ def test_footer_contrast_has_explicit_high_specificity_rules(self):
+  css=(SITE/"stylesheets/inm-documentation-v1.css").read_text(encoding="utf-8")
+  self.assertIn("footer.md-footer .md-footer-meta .md-copyright",css)
+  self.assertIn("color: #ffffff;",css)
+  self.assertIn("a:focus-visible",css)
  def test_unexpected_source_is_blocked(self):
   self._fixture(lambda data,root:(root/"secret.wav").write_bytes(b"abc"))
  def test_modified_content_hash_is_blocked(self):

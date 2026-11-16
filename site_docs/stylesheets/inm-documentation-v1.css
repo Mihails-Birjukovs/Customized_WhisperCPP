@@ -23,3 +23,17 @@
 .md-footer a,.md-footer a:visited,.md-footer-meta a,.md-footer-meta a:visited,.md-copyright a,.md-copyright a:visited{color:#fff;text-decoration:underline;}
 .md-footer a:hover,.md-footer-meta a:hover,.md-copyright a:hover{color:#ffcb9d;}
 @media(max-width:720px){.inm-hero{padding:1.3rem 1.1rem}.inm-hero h2{font-size:1.2rem}.inm-identity{display:block}}
+
+
+/* Explicit copyright ink: Zensical classic assigns dark colors directly to
+   .md-copyright and its link even inside a dark footer. Match the actual DOM
+   with higher specificity rather than relying on inherited footer color. */
+footer.md-footer .md-footer-meta .md-copyright,
+footer.md-footer .md-footer-meta .md-copyright a,
+footer.md-footer .md-footer-meta .md-copyright a:visited {
+  color: #ffffff;
+}
+footer.md-footer .md-footer-meta .md-copyright a:hover,
+footer.md-footer .md-footer-meta .md-copyright a:focus-visible {
+  color: #ffcb9d;
+}
