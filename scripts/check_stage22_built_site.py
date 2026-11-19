@@ -29,6 +29,8 @@ def verify():
               "provenance","roadmap","credits"):
   if not (SITE/slug/"index.html").is_file():
    raise ValueError("Missing navigation target: "+slug)
+ if "mathjax@3.2.2" not in page or "javascripts/mathjax.js" not in page or not (SITE/"javascripts/mathjax.js").is_file():
+  raise ValueError("Generated site lacks pinned MathJax runtime and script")
  return {"html_and_css_present":True,"nav_pages":8,
          "private_data_review_not_implied":True,"site_deployed":False}
 if __name__=="__main__":
