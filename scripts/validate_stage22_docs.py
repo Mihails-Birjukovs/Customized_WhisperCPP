@@ -37,8 +37,10 @@ def audited(root=SITE,manifest=MANIFEST):
   if rel.startswith("/") or ".." in Path(rel).parts:
    raise ValueError("Unsafe relative path")
   path=Path(root)/rel
-  if path.is_symlink() or path.suffix.lower() not in (".md",".css"):
+  if path.is_symlink() or path.suffix.lower() not in (".md",".css",".js"):
    raise ValueError("Unsafe site asset")
+  if path.suffix.lower()==".js" and rel!="javascripts/mathjax.js":
+   raise ValueError("Only reviewed numbered-MathJax script is permitted")
   content=path.read_bytes()
   if hashlib.sha256(content).hexdigest()!=data["files_sha256"][rel]:
    raise ValueError("Document content SHA changed: "+rel)
@@ -47,6 +49,10 @@ def audited(root=SITE,manifest=MANIFEST):
    raise ValueError("Private or credential-like content: "+rel)
   if re.search(r"(?i)(?:data:|src\s*=\s*['\"]https?://)",text):
    raise ValueError("Unreviewed embedded external asset: "+rel)
+ conf=(ROOT/"zensical.toml").read_text(encoding="utf-8")
+ script=(SITE/"javascripts/mathjax.js").read_text(encoding="utf-8")
+ if not all(x in conf for x in ("pymdownx.arithmatex.generic = true","mathjax@3.2.2","javascripts/mathjax.js")) or 'tags: "all"' not in script or "document$.subscribe" not in script:
+  raise ValueError("Missing numbered MathJax configuration")
  if "index.md" not in allowed:raise ValueError("Missing home page")
  return {"site_files":len(actual),"verified":True,"deployment":"approved_master_only"}
 if __name__=="__main__":
