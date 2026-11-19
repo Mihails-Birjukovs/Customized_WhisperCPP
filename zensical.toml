@@ -22,9 +22,12 @@ nav = [
   { "Credits and licensing" = "credits.md" },
 ]
 [project.theme]
+logo = "assets/inm-horizontal.svg"
+favicon = "assets/inm-mark.svg"
 language = "en"
 features = [
- "navigation.tabs", "navigation.footer", "navigation.top",
+ "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections",
+ "toc.follow", "navigation.footer", "navigation.top",
  "search.highlight", "content.code.copy"
 ]
 

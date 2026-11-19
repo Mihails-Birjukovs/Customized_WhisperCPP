@@ -1,11 +1,14 @@
 {
   "schema": "customized-whispercpp/stage22-curated-public-source/v1",
-  "status": "OWNER_APPROVED_PROTOCOL_REMEDIATION_PENDING_PR_REVIEW_2026-11-19",
+  "status": "OWNER_APPROVED_BRANDING_CHANGE_PENDING_PR_REVIEW_2026-11-19",
   "frozen_development_source_sha": "442aa2a01c1319041354aaabfe82b3dc2ccefb2a",
   "private_scientific_aggregate_sha256": "9ef35c1c627808e004a3c7f6c7ec0c0413b2bc7047fcbb1726893dd6e8f0f37f",
   "approved_for_build_only": [
     "adaptive-recovery.md",
     "architecture.md",
+    "assets/inm-horizontal.svg",
+    "assets/inm-mark.svg",
+    "assets/inm-square-footer.svg",
     "credits.md",
     "getting-started.md",
     "index.md",
@@ -18,19 +21,33 @@
   "files_sha256": {
     "adaptive-recovery.md": "d8a8904b1d2e8a8d8df049e8b05eeb5b6ec336cf7664ec4811936257f28187f5",
     "architecture.md": "b44ba1b340e2f3a8694203193782944b80f6d6b5996221eb125e10cc8ac758aa",
-    "credits.md": "00c5ae0eb2ec0d272175e02795517f217b26d609be3ca9766238858faa8b20e2",
+    "credits.md": "341451b9e2edd493c366d08265ee0df409971302eaa4cf2b4ca9a5ded802317e",
     "getting-started.md": "dad99bc16168c1b4c5989794721502f636eb65b99aceee3e323d71241e8d35c7",
-    "index.md": "ea2a33621787c50ef71cf8f30abd8a58784dd6992b21af5757e4e1413fcb0226",
+    "index.md": "ead89b8ca71814ce475a7c99501be5875e6644b35882b168cf32b8455c0a094c",
     "provenance.md": "dbd2230a49215343b06c53e785ce4b9b7c3a01aa1f8bf6571a954e67527eb6b4",
     "roadmap.md": "102202bcf137dca4e4a05b753daea085a1df3486894d64eb76a3530b56d40d07",
-    "stylesheets/inm-documentation-v1.css": "455877806268b779eca639ed5f4551a0b772717df998e74c0516c51c9f57a9dd",
+    "stylesheets/inm-documentation-v1.css": "314878bd6b0dac21487690a777fbcd135b3737045be24031dbdf45d8db308289",
     "validation.md": "6a59b985c74659068782d3d879901d0cc5e1d06b1b3f5b480caf1c37db5dc4ca",
-    "javascripts/mathjax.js": "d564ff2d06d3c752c1fe5fd1af365a65fe96a7195bdc6c6bb288bdcb0e4918f8"
+    "javascripts/mathjax.js": "d564ff2d06d3c752c1fe5fd1af365a65fe96a7195bdc6c6bb288bdcb0e4918f8",
+    "assets/inm-horizontal.svg": "bbf807b1bc47c61e89b836c1124474bf6e255cbdd32aa722345d9d93f85d47d0",
+    "assets/inm-mark.svg": "98fafcb889f581b2da42816ba52a2286b2ffe871a4daba307b0ac29fba54f210",
+    "assets/inm-square-footer.svg": "289ee1470b5d3eac90e563abcebcec736a1d760f4b02a71c9055f399b1406856"
   },
-  "content_rights": "Technical content derived from user's own fork and approved aggregate results. No raw research data, transcripts, logo or figures.",
+  "content_rights": "Technical content from owner fork/approved aggregate results. No raw research audio or transcripts; only three exact owner-authorized INM institutional marks with separate artwork rights, not MIT licensed",
   "rights_approval_for_public_pages": true,
   "deployment_authorized": true,
   "deployment_ref": "refs/heads/master",
   "publication_authorization_record": "docs/STAGE22_PUBLICATION_AUTHORIZATION_v1.json",
-  "owner_review_scope": "Curated original Markdown/CSS and Stage20 aggregates only; no official marks or private recordings; one original, pinned MathJax JS configuration asset added under review, no research data or audio"
+  "owner_review_scope": "Approved curated text/CSS, technical aggregates, MathJax and three original INM SVG marks only; no raw audio, private transcripts, other institutional marks or unreviewed experimental data",
+  "institutional_logo_provenance": {
+    "reference_repo": "Mihails-Birjukovs/OOC_Particles_Velocimetry_Docs",
+    "source_commit": "26bee7c382c6f4d6f0dd209a954fa645b950a980",
+    "approved_svg_blobs": {
+      "assets/inm-horizontal.svg": "33938b2a9a6ae442b3ede153fb79187a31040a68",
+      "assets/inm-mark.svg": "b3a5154d96b0daf24cd44711fa13980689119287",
+      "assets/inm-square-footer.svg": "327ffd7d447e8475e4c8f0e0d0fa68f465be841b"
+    },
+    "approval": "Owner requested reuse for Customized_WhisperCPP site on 2026-11-19; PR review required",
+    "license_boundary": "INM artwork excluded from MIT software license; no implied endorsement"
+  }
 }

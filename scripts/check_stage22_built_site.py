@@ -31,6 +31,14 @@ def verify():
    raise ValueError("Missing navigation target: "+slug)
  if "mathjax@3.2.2" not in page or "javascripts/mathjax.js" not in page or not (SITE/"javascripts/mathjax.js").is_file():
   raise ValueError("Generated site lacks pinned MathJax runtime and script")
+ for name in ("inm-horizontal.svg","inm-mark.svg","inm-square-footer.svg"):
+  if not (SITE/"assets"/name).is_file():raise ValueError("Official reviewed INM artwork missing from generated site: "+name)
+ if "assets/inm-horizontal.svg" not in page or "assets/inm-mark.svg" not in page:
+  raise ValueError("Header INM logo or favicon absent from generated page")
+ if "inm-square-footer.svg" not in css.read_text(encoding="utf-8"):
+  raise ValueError("Approved INM footer logo CSS absent")
+ if "md-source" not in page or "github.com/Mihails-Birjukovs/Customized_WhisperCPP" not in page:
+  raise ValueError("Public GitHub repository icon link missing from header")
  return {"html_and_css_present":True,"nav_pages":8,
          "private_data_review_not_implied":True,"site_deployed":False}
 if __name__=="__main__":
