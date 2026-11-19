@@ -1,6 +1,6 @@
 {
   "schema": "customized-whispercpp/stage22-curated-public-source/v1",
-  "status": "OWNER_APPROVED_PAGES_PUBLICATION_2026-11-16",
+  "status": "OWNER_APPROVED_PROTOCOL_REMEDIATION_PENDING_PR_REVIEW_2026-11-19",
   "frozen_development_source_sha": "442aa2a01c1319041354aaabfe82b3dc2ccefb2a",
   "private_scientific_aggregate_sha256": "9ef35c1c627808e004a3c7f6c7ec0c0413b2bc7047fcbb1726893dd6e8f0f37f",
   "approved_for_build_only": [
@@ -9,6 +9,7 @@
     "credits.md",
     "getting-started.md",
     "index.md",
+    "javascripts/mathjax.js",
     "provenance.md",
     "roadmap.md",
     "stylesheets/inm-documentation-v1.css",
@@ -23,12 +24,13 @@
     "provenance.md": "dbd2230a49215343b06c53e785ce4b9b7c3a01aa1f8bf6571a954e67527eb6b4",
     "roadmap.md": "102202bcf137dca4e4a05b753daea085a1df3486894d64eb76a3530b56d40d07",
     "stylesheets/inm-documentation-v1.css": "455877806268b779eca639ed5f4551a0b772717df998e74c0516c51c9f57a9dd",
-    "validation.md": "6a59b985c74659068782d3d879901d0cc5e1d06b1b3f5b480caf1c37db5dc4ca"
+    "validation.md": "6a59b985c74659068782d3d879901d0cc5e1d06b1b3f5b480caf1c37db5dc4ca",
+    "javascripts/mathjax.js": "d564ff2d06d3c752c1fe5fd1af365a65fe96a7195bdc6c6bb288bdcb0e4918f8"
   },
   "content_rights": "Technical content derived from user's own fork and approved aggregate results. No raw research data, transcripts, logo or figures.",
   "rights_approval_for_public_pages": true,
   "deployment_authorized": true,
   "deployment_ref": "refs/heads/master",
   "publication_authorization_record": "docs/STAGE22_PUBLICATION_AUTHORIZATION_v1.json",
-  "owner_review_scope": "Curated original Markdown/CSS and Stage20 aggregates only; no official marks or private recordings"
+  "owner_review_scope": "Curated original Markdown/CSS and Stage20 aggregates only; no official marks or private recordings; one original, pinned MathJax JS configuration asset added under review, no research data or audio"
 }

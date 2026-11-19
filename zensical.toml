@@ -7,6 +7,10 @@ site_dir = "site"
 repo_url = "https://github.com/Mihails-Birjukovs/Customized_WhisperCPP"
 repo_name = "Mihails-Birjukovs/Customized_WhisperCPP"
 extra_css = ["stylesheets/inm-documentation-v1.css"]
+extra_javascript = [
+  "javascripts/mathjax.js",
+  "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js",
+]
 nav = [
   { "Overview" = "index.md" },
   { "Getting started" = "getting-started.md" },
@@ -23,3 +27,6 @@ features = [
  "navigation.tabs", "navigation.footer", "navigation.top",
  "search.highlight", "content.code.copy"
 ]
+
+[project.markdown_extensions]
+pymdownx.arithmatex.generic = true
