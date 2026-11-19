@@ -18,4 +18,4 @@
 
 The project addresses output-level loops, incomplete captions, cautious retry planning, source-clock provenance, and machine/human evidence separation. See [Architecture](architecture.md), [Adaptive recovery](adaptive-recovery.md), [Validation](validation.md) and [Roadmap](roadmap.md).
 
-**Attribution:** fork of [ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.cpp), original MIT software licensing retained. This documentation uses INM-inspired colors without institutional marks or implied endorsement.
+**Attribution:** fork of [ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.cpp), original MIT software licensing retained. The site now displays owner-authorized INM header, favicon and footer artwork as part of the institutional documentation theme. The marks remain separately owned and are not licensed as part of whisper.cpp or this fork; their appearance does not imply endorsement of provisional experimental results.
