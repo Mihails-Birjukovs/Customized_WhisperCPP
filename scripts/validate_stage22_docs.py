@@ -26,6 +26,12 @@ def audited(root=SITE,manifest=MANIFEST):
      auth.get("source_files_count") != len(allowed) or
      data.get("publication_authorization_record") != "docs/STAGE22_PUBLICATION_AUTHORIZATION_v1.json"):
   raise ValueError("Approved publication record or curated source mismatch")
+ institutional_svg_blobs={
+  "assets/inm-horizontal.svg":"33938b2a9a6ae442b3ede153fb79187a31040a68",
+  "assets/inm-mark.svg":"b3a5154d96b0daf24cd44711fa13980689119287",
+  "assets/inm-square-footer.svg":"327ffd7d447e8475e4c8f0e0d0fa68f465be841b"}
+ if sorted(data.get("institutional_logo_provenance",{}).get("approved_svg_blobs",{}).items())!=sorted(institutional_svg_blobs.items()):
+  raise ValueError("Institutional mark source allowlist mismatch")
  if len(allowed)!=len(set(allowed)):
   raise ValueError("Duplicate document")
  actual=sorted(p.relative_to(root).as_posix() for p in Path(root).rglob("*") if p.is_file())
@@ -37,11 +43,19 @@ def audited(root=SITE,manifest=MANIFEST):
   if rel.startswith("/") or ".." in Path(rel).parts:
    raise ValueError("Unsafe relative path")
   path=Path(root)/rel
-  if path.is_symlink() or path.suffix.lower() not in (".md",".css",".js"):
+  if path.is_symlink() or path.suffix.lower() not in (".md",".css",".js",".svg"):
    raise ValueError("Unsafe site asset")
   if path.suffix.lower()==".js" and rel!="javascripts/mathjax.js":
    raise ValueError("Only reviewed numbered-MathJax script is permitted")
+  if path.suffix.lower()==".svg" and rel not in institutional_svg_blobs:
+   raise ValueError("Unreviewed institutional SVG asset: "+rel)
   content=path.read_bytes()
+  if rel in institutional_svg_blobs:
+   actual_blob=hashlib.sha1(b"blob "+str(len(content)).encode("ascii")+b"\0"+content).hexdigest()
+   if actual_blob!=institutional_svg_blobs[rel]:
+    raise ValueError("Approved INM logo blob mismatch: "+rel)
+   if re.search(rb"<script|<foreignObject|onload=|javascript:|<image\b",content,re.I):
+    raise ValueError("Unsafe active INM SVG content: "+rel)
   if hashlib.sha256(content).hexdigest()!=data["files_sha256"][rel]:
    raise ValueError("Document content SHA changed: "+rel)
   text=content.decode("utf-8",errors="strict")
@@ -53,6 +67,8 @@ def audited(root=SITE,manifest=MANIFEST):
  script=(SITE/"javascripts/mathjax.js").read_text(encoding="utf-8")
  if not all(x in conf for x in ("pymdownx.arithmatex.generic = true","mathjax@3.2.2","javascripts/mathjax.js")) or 'tags: "all"' not in script or "document$.subscribe" not in script:
   raise ValueError("Missing numbered MathJax configuration")
+ if 'logo = "assets/inm-horizontal.svg"' not in conf or 'favicon = "assets/inm-mark.svg"' not in conf:
+  raise ValueError("Owner-approved official INM logo and favicon not configured")
  if "index.md" not in allowed:raise ValueError("Missing home page")
  return {"site_files":len(actual),"verified":True,"deployment":"approved_master_only"}
 if __name__=="__main__":
