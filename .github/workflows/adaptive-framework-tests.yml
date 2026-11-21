@@ -1,0 +1,31 @@
+name: Adaptive framework synthetic tests
+on:
+  pull_request:
+    paths:
+      - 'adaptive_whisper/**'
+      - 'tests/adaptive_whisper/**'
+      - 'docs/ADAPTIVE_FRAMEWORK_PROTOTYPE.md'
+      - '.github/workflows/adaptive-framework-tests.yml'
+  push:
+    paths:
+      - 'adaptive_whisper/**'
+      - 'tests/adaptive_whisper/**'
+      - 'docs/ADAPTIVE_FRAMEWORK_PROTOTYPE.md'
+      - '.github/workflows/adaptive-framework-tests.yml'
+permissions:
+  contents: read
+jobs:
+  unit-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Verify backend-independent invariants
+        run: python -m unittest discover -s tests/adaptive_whisper -v
