@@ -2,6 +2,7 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
+#include <mutex>
 #include <thread>
 
 constexpr int N_THREAD = 8;
